@@ -43,37 +43,37 @@ const statItems = (
     label: "Pace Médio",
     value: stats?.avgPace ? formatPace(stats.avgPace) : "—",
     icon: Gauge,
-    color: "text-accent",
+    color: "text-foreground",
   },
   {
     label: "Melhor Pace",
     value: stats?.bestPace ? formatPace(stats.bestPace) : "—",
     icon: TrendingUp,
-    color: "text-emerald-400",
+    color: "text-primary",
   },
   {
     label: "Total Treinos",
     value: String(stats?.totalWorkouts ?? 0),
     icon: Activity,
-    color: "text-orange-400",
+    color: "text-muted-foreground",
   },
   {
     label: "Concluídos",
     value: String(stats?.completedCount ?? 0),
     icon: CheckCircle,
-    color: "text-emerald-400",
+    color: "text-primary",
   },
   {
     label: "Perdidos",
     value: String(stats?.missedCount ?? 0),
     icon: XCircle,
-    color: "text-red-400",
+    color: "text-destructive",
   },
   {
     label: "Maior Longão",
     value: formatDistance(stats?.longestRun ?? 0),
     icon: Timer,
-    color: "text-blue-400",
+    color: "text-foreground",
   },
 ];
 

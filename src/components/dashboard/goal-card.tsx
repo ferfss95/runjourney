@@ -40,7 +40,7 @@ export function GoalCard({
       transition={{ duration: 0.5 }}
     >
       <Card className="glass-card stat-glow overflow-hidden relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/5" />
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-white/5" />
         <CardContent className="p-6 relative">
           <div className="flex items-start justify-between mb-4">
             <div>
@@ -86,7 +86,7 @@ export function GoalCard({
                 <p className="text-xl font-bold">
                   {formatDistance(nextWorkout.plannedDistance)}
                 </p>
-                <p className="text-xs text-accent">
+                <p className="text-xs text-primary">
                   {format(new Date(nextWorkout.date), "EEEE, d MMM", {
                     locale: ptBR,
                   })}

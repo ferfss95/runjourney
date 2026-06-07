@@ -20,7 +20,7 @@ export function InsightsCard({ insights }: InsightsCardProps) {
       <Card className="glass-card">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-accent" />
+            <Sparkles className="h-5 w-5 text-primary" />
             Insights
           </CardTitle>
         </CardHeader>

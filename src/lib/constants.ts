@@ -17,11 +17,11 @@ export const WORKOUT_TYPE_XP: Record<WorkoutType, number> = {
 };
 
 export const WORKOUT_TYPE_COLORS: Record<WorkoutType, string> = {
-  EASY_RUN: "hsl(142, 76%, 45%)",
-  INTERVAL: "hsl(25, 95%, 53%)",
-  LONG_RUN: "hsl(217, 91%, 60%)",
-  SPRINTS: "hsl(0, 84%, 60%)",
-  RECOVERY: "hsl(262, 83%, 58%)",
+  EASY_RUN: "hsl(0, 0%, 70%)",
+  INTERVAL: "hsl(11, 82%, 58%)",
+  LONG_RUN: "hsl(11, 60%, 45%)",
+  SPRINTS: "hsl(11, 90%, 65%)",
+  RECOVERY: "hsl(0, 0%, 45%)",
 };
 
 export const ACHIEVEMENT_DEFINITIONS: Record<

@@ -153,7 +153,7 @@ src/
 | `npm run dev` | Servidor de desenvolvimento |
 | `npm run build` | Build de produção |
 | `npm run db:push` | Sincronizar schema com banco |
-| `npm run db:seed` | Popular dados de demonstração |
+| `npm run db:seed` | Criar plano Meia Maratona 2026 (sem dados fictícios) |
 | `npm run db:studio` | Abrir Prisma Studio |
 
 ## Gamificação

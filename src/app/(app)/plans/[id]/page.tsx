@@ -9,6 +9,7 @@ import { formatDistance } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ArrowLeft } from "lucide-react";
+import { RescheduleWorkoutButton } from "@/components/workouts/reschedule-workout-button";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -118,10 +119,16 @@ export default async function PlanDetailPage({ params }: PageProps) {
                             ? "Perdido"
                             : "Agendado"}
                       </Badge>
-                      {workout.status === "SCHEDULED" && (
-                        <Link href={`/workouts/${workout.id}/complete`}>
-                          <Button size="sm">Concluir</Button>
-                        </Link>
+                      {workout.status !== "COMPLETED" && (
+                        <>
+                          <RescheduleWorkoutButton
+                            workoutId={workout.id}
+                            currentDate={workout.date}
+                          />
+                          <Link href={`/workouts/${workout.id}/complete`}>
+                            <Button size="sm">Concluir</Button>
+                          </Link>
+                        </>
                       )}
                     </div>
                   </CardContent>

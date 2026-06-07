@@ -25,22 +25,22 @@ export function PaceChart({ data }: PaceChartProps) {
       <CardContent>
         <ResponsiveContainer width="100%" height={250}>
           <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(217 33% 18%)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 22%)" />
             <XAxis
               dataKey="date"
-              tick={{ fill: "hsl(215 20% 55%)", fontSize: 11 }}
+              tick={{ fill: "hsl(0 0% 55%)", fontSize: 11 }}
               tickFormatter={(v) => v.slice(5)}
             />
             <YAxis
-              tick={{ fill: "hsl(215 20% 55%)", fontSize: 11 }}
+              tick={{ fill: "hsl(0 0% 55%)", fontSize: 11 }}
               tickFormatter={(v) => formatPace(v)}
               reversed
               domain={["dataMin - 0.5", "dataMax + 0.5"]}
             />
             <Tooltip
               contentStyle={{
-                background: "hsl(222 47% 9%)",
-                border: "1px solid hsl(217 33% 18%)",
+                background: "hsl(0 0% 10%)",
+                border: "1px solid hsl(0 0% 22%)",
                 borderRadius: "8px",
               }}
               formatter={(value: number) => [formatPace(value), "Pace"]}
@@ -48,9 +48,9 @@ export function PaceChart({ data }: PaceChartProps) {
             <Line
               type="monotone"
               dataKey="pace"
-              stroke="hsl(25 95% 53%)"
+              stroke="hsl(11 82% 58%)"
               strokeWidth={2}
-              dot={{ fill: "hsl(25 95% 53%)", r: 4 }}
+              dot={{ fill: "hsl(11 82% 58%)", r: 4 }}
               activeDot={{ r: 6 }}
             />
           </LineChart>

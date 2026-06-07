@@ -24,7 +24,7 @@ export function XpCard({ totalXp, level }: XpCardProps) {
         <CardContent className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <Zap className="h-5 w-5 text-amber-400" />
+              <Zap className="h-5 w-5 text-primary" />
               <h3 className="font-semibold">Nível {level}</h3>
             </div>
             <span className="text-sm text-muted-foreground">

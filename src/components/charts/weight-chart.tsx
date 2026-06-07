@@ -39,25 +39,25 @@ export function WeightChart({ data }: WeightChartProps) {
           <AreaChart data={data}>
             <defs>
               <linearGradient id="weightGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(262 83% 58%)" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="hsl(262 83% 58%)" stopOpacity={0} />
+                <stop offset="5%" stopColor="hsl(0 0% 70%)" stopOpacity={0.3} />
+                <stop offset="95%" stopColor="hsl(0 0% 70%)" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(217 33% 18%)" />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 22%)" />
             <XAxis
               dataKey="date"
-              tick={{ fill: "hsl(215 20% 55%)", fontSize: 11 }}
+              tick={{ fill: "hsl(0 0% 55%)", fontSize: 11 }}
               tickFormatter={(v) => v.slice(5)}
             />
             <YAxis
-              tick={{ fill: "hsl(215 20% 55%)", fontSize: 11 }}
+              tick={{ fill: "hsl(0 0% 55%)", fontSize: 11 }}
               unit="kg"
               domain={["dataMin - 2", "dataMax + 2"]}
             />
             <Tooltip
               contentStyle={{
-                background: "hsl(222 47% 9%)",
-                border: "1px solid hsl(217 33% 18%)",
+                background: "hsl(0 0% 10%)",
+                border: "1px solid hsl(0 0% 22%)",
                 borderRadius: "8px",
               }}
               formatter={(value: number) => [`${value} kg`, "Peso"]}
@@ -65,7 +65,7 @@ export function WeightChart({ data }: WeightChartProps) {
             <Area
               type="monotone"
               dataKey="weight"
-              stroke="hsl(262 83% 58%)"
+              stroke="hsl(0 0% 70%)"
               fill="url(#weightGrad)"
               strokeWidth={2}
             />

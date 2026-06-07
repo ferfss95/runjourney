@@ -8,6 +8,7 @@ export const workoutService = {
   async completeWorkout(
     workoutId: string,
     data: {
+      completedDate?: string;
       actualDistance: number;
       actualTime: number;
       weight?: number;
@@ -19,6 +20,10 @@ export const workoutService = {
     if (!workout) throw new Error("Treino não encontrado");
     if (workout.status === "COMPLETED")
       throw new Error("Treino já foi concluído");
+
+    const completedDate = data.completedDate
+      ? new Date(data.completedDate + "T08:00:00")
+      : new Date();
 
     const pace = calculatePace(data.actualDistance, data.actualTime);
     const distanceDiff = data.actualDistance - workout.plannedDistance;
@@ -52,12 +57,12 @@ export const workoutService = {
 
       await tx.workout.update({
         where: { id: workoutId },
-        data: { status: "COMPLETED" },
+        data: { status: "COMPLETED", date: completedDate },
       });
 
       if (data.weight) {
         await tx.weightRecord.create({
-          data: { weight: data.weight, date: new Date() },
+          data: { weight: data.weight, date: completedDate },
         });
       }
 
@@ -83,6 +88,22 @@ export const workoutService = {
     });
 
     return { execution, unlocked };
+  },
+
+  async rescheduleWorkout(workoutId: string, dateStr: string) {
+    const workout = await workoutRepository.findById(workoutId);
+    if (!workout) throw new Error("Treino não encontrado");
+    if (workout.status === "COMPLETED")
+      throw new Error("Treino já concluído não pode ser reagendado");
+
+    const newDate = new Date(dateStr + "T08:00:00");
+
+    await workoutRepository.update(workoutId, {
+      date: newDate,
+      status: "SCHEDULED",
+    });
+
+    await statsService.recalculateStats();
   },
 
   async markMissedWorkouts() {

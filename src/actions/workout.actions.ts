@@ -17,6 +17,7 @@ const workoutSchema = z.object({
 
 const completeSchema = z.object({
   workoutId: z.string(),
+  completedDate: z.string().optional(),
   actualDistance: z.coerce.number().positive(),
   actualTime: z.coerce.number().positive(),
   weight: z.coerce.number().optional(),
@@ -24,12 +25,41 @@ const completeSchema = z.object({
   notes: z.string().optional(),
 });
 
+const rescheduleSchema = z.object({
+  date: z.string().min(1, "Data obrigatória"),
+});
+
 export async function createWorkoutAction(_formData: FormData) {
   return { error: "Treinos são definidos pelo plano Meia Maratona 2026." };
 }
 
 export async function updateWorkoutAction(_id: string, _formData: FormData) {
-  return { error: "Treinos do plano não podem ser editados manualmente." };
+  return { error: "Use 'Alterar data' para reagendar o treino." };
+}
+
+export async function rescheduleWorkoutAction(
+  workoutId: string,
+  formData: FormData
+) {
+  const parsed = rescheduleSchema.safeParse({
+    date: formData.get("date"),
+  });
+
+  if (!parsed.success) {
+    return { error: parsed.error.errors[0].message };
+  }
+
+  try {
+    await workoutService.rescheduleWorkout(workoutId, parsed.data.date);
+    revalidatePath("/");
+    revalidatePath("/calendar");
+    revalidatePath("/plans");
+    return { success: true };
+  } catch (e) {
+    return {
+      error: e instanceof Error ? e.message : "Erro ao alterar data",
+    };
+  }
 }
 
 export async function deleteWorkoutAction(_id: string): Promise<void> {
@@ -39,6 +69,7 @@ export async function deleteWorkoutAction(_id: string): Promise<void> {
 export async function completeWorkoutAction(formData: FormData) {
   const parsed = completeSchema.safeParse({
     workoutId: formData.get("workoutId"),
+    completedDate: formData.get("completedDate") || undefined,
     actualDistance: formData.get("actualDistance"),
     actualTime: formData.get("actualTime"),
     weight: formData.get("weight") || undefined,

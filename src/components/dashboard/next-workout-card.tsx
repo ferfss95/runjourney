@@ -45,7 +45,7 @@ export function NextWorkoutCard({ workout }: NextWorkoutCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.1 }}
     >
-      <Card className={`glass-card ${isToday ? "ring-2 ring-accent/50" : ""}`}>
+      <Card className={`glass-card ${isToday ? "ring-2 ring-primary/60" : ""}`}>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg">
@@ -93,7 +93,7 @@ export function NextWorkoutCard({ workout }: NextWorkoutCardProps) {
             </p>
           )}
 
-          {workout.status === "SCHEDULED" && (
+          {workout.status !== "COMPLETED" && (
             <Link href={`/workouts/${workout.id}/complete`}>
               <Button className="w-full" size="lg">
                 <CheckCircle2 className="h-5 w-5" />

@@ -12,6 +12,8 @@ import { calculatePace, formatDistance, formatPace } from "@/lib/utils";
 import type { WorkoutType } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface CompleteWorkoutFormProps {
   workout: {
@@ -33,6 +35,9 @@ export function CompleteWorkoutForm({ workout }: CompleteWorkoutFormProps) {
     workout.plannedTime ? String(workout.plannedTime) : ""
   );
   const [unlocked, setUnlocked] = useState<string[]>([]);
+  const [completedDate, setCompletedDate] = useState(
+    new Date().toISOString().split("T")[0]
+  );
 
   const pace = useMemo(() => {
     const d = parseFloat(distance);
@@ -87,7 +92,7 @@ export function CompleteWorkoutForm({ workout }: CompleteWorkoutFormProps) {
   return (
     <div className="space-y-6">
       <Card className="glass-card">
-        <CardContent className="p-4">
+        <CardContent className="p-4 space-y-1">
           <p className="text-sm text-muted-foreground">Treino planejado</p>
           <p className="font-semibold">{WORKOUT_TYPE_LABELS[workout.type]}</p>
           <p>
@@ -95,10 +100,31 @@ export function CompleteWorkoutForm({ workout }: CompleteWorkoutFormProps) {
             {workout.plannedTime &&
               ` • ${Math.floor(workout.plannedTime / 60)}min`}
           </p>
+          <p className="text-sm text-muted-foreground">
+            Data planejada:{" "}
+            {format(new Date(workout.date), "EEEE, d 'de' MMMM", {
+              locale: ptBR,
+            })}
+          </p>
         </CardContent>
       </Card>
 
       <form action={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="completedDate">Data de realização</Label>
+          <Input
+            id="completedDate"
+            name="completedDate"
+            type="date"
+            value={completedDate}
+            onChange={(e) => setCompletedDate(e.target.value)}
+            required
+          />
+          <p className="text-xs text-muted-foreground">
+            Informe o dia em que você realmente fez o treino
+          </p>
+        </div>
+
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="actualDistance">Distância realizada (km)</Label>
@@ -142,7 +168,7 @@ export function CompleteWorkoutForm({ workout }: CompleteWorkoutFormProps) {
               <Card className="glass-card">
                 <CardContent className="p-3 text-center">
                   <p className="text-xs text-muted-foreground">Aderência</p>
-                  <p className="text-xl font-bold text-accent">{adherence}%</p>
+                  <p className="text-xl font-bold text-foreground">{adherence}%</p>
                 </CardContent>
               </Card>
             )}
