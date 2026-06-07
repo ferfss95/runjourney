@@ -8,11 +8,8 @@ import { InsightsCard } from "@/components/dashboard/insights-card";
 import { DistanceChart } from "@/components/charts/distance-chart";
 import { statsService } from "@/services/stats.service";
 import { gamificationService } from "@/services/gamification.service";
-import { workoutService } from "@/services/workout.service";
 
 export default async function DashboardPage() {
-  await workoutService.markMissedWorkouts();
-
   const [dashboard, chartData, insights, gamification] = await Promise.all([
     statsService.getDashboardStats(),
     statsService.getChartData(),

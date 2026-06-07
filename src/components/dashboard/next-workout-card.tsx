@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { WORKOUT_TYPE_LABELS } from "@/lib/constants";
 import { formatDistance, formatDuration } from "@/lib/utils";
-import type { WorkoutType } from "@prisma/client";
+import type { WorkoutStatus, WorkoutType } from "@prisma/client";
 import { Calendar, CheckCircle2 } from "lucide-react";
 
 interface NextWorkoutCardProps {
@@ -20,7 +20,7 @@ interface NextWorkoutCardProps {
     plannedDistance: number;
     plannedTime: number | null;
     notes: string | null;
-    status: string;
+    status: WorkoutStatus;
   } | null;
 }
 
@@ -38,6 +38,8 @@ export function NextWorkoutCard({ workout }: NextWorkoutCardProps) {
 
   const isToday =
     new Date(workout.date).toDateString() === new Date().toDateString();
+  const isOverdue =
+    workout.status === "OVERDUE" || workout.status === "MISSED";
 
   return (
     <motion.div
@@ -45,13 +47,25 @@ export function NextWorkoutCard({ workout }: NextWorkoutCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.1 }}
     >
-      <Card className={`glass-card ${isToday ? "ring-2 ring-primary/60" : ""}`}>
+      <Card
+        className={`glass-card ${
+          isToday ? "ring-2 ring-primary/60" : isOverdue ? "ring-2 ring-primary/40" : ""
+        }`}
+      >
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg">
-              {isToday ? "Treino de Hoje" : "Próximo Treino"}
+              {isOverdue
+                ? "Treino Atrasado"
+                : isToday
+                  ? "Treino de Hoje"
+                  : "Próximo Treino"}
             </CardTitle>
-            {isToday && <Badge variant="warning">Hoje</Badge>}
+            {isOverdue ? (
+              <Badge variant="warning">Atrasado</Badge>
+            ) : isToday ? (
+              <Badge variant="warning">Hoje</Badge>
+            ) : null}
           </div>
         </CardHeader>
         <CardContent className="space-y-4">

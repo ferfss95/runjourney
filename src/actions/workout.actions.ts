@@ -33,8 +33,61 @@ export async function createWorkoutAction(_formData: FormData) {
   return { error: "Treinos são definidos pelo plano Meia Maratona 2026." };
 }
 
-export async function updateWorkoutAction(_id: string, _formData: FormData) {
-  return { error: "Use 'Alterar data' para reagendar o treino." };
+const updateCompletedSchema = completeSchema;
+
+export async function updateCompletedWorkoutAction(formData: FormData) {
+  const parsed = updateCompletedSchema.safeParse({
+    workoutId: formData.get("workoutId"),
+    completedDate: formData.get("completedDate") || undefined,
+    actualDistance: formData.get("actualDistance"),
+    actualTime: formData.get("actualTime"),
+    heartRate: formData.get("heartRate") || undefined,
+    notes: formData.get("notes") || undefined,
+  });
+
+  if (!parsed.success) {
+    return { error: parsed.error.errors[0].message };
+  }
+
+  if (!parsed.data.completedDate) {
+    return { error: "Data de realização obrigatória" };
+  }
+
+  try {
+    await workoutService.updateCompletedWorkout(parsed.data.workoutId, {
+      completedDate: parsed.data.completedDate,
+      actualDistance: parsed.data.actualDistance,
+      actualTime: parsed.data.actualTime,
+      heartRate: parsed.data.heartRate,
+      notes: parsed.data.notes,
+    });
+    revalidatePath("/");
+    revalidatePath("/calendar");
+    revalidatePath("/stats");
+    revalidatePath("/achievements");
+    revalidatePath("/plans");
+    return { success: true };
+  } catch (e) {
+    return {
+      error: e instanceof Error ? e.message : "Erro ao atualizar treino",
+    };
+  }
+}
+
+export async function uncompleteWorkoutAction(workoutId: string) {
+  try {
+    await workoutService.uncompleteWorkout(workoutId);
+    revalidatePath("/");
+    revalidatePath("/calendar");
+    revalidatePath("/stats");
+    revalidatePath("/achievements");
+    revalidatePath("/plans");
+    return { success: true };
+  } catch (e) {
+    return {
+      error: e instanceof Error ? e.message : "Erro ao desfazer conclusão",
+    };
+  }
 }
 
 export async function rescheduleWorkoutAction(

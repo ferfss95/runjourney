@@ -45,6 +45,21 @@ export const statsRepository = {
     });
   },
 
+  lockAchievement(type: AchievementType) {
+    return prisma.achievement.update({
+      where: { type },
+      data: { unlockedAt: null },
+    });
+  },
+
+  removeXpByWorkoutId(workoutId: string) {
+    return prisma.xPHistory.deleteMany({ where: { workoutId } });
+  },
+
+  getTotalXp() {
+    return prisma.xPHistory.aggregate({ _sum: { amount: true } });
+  },
+
   ensureAchievements(
     achievements: {
       type: AchievementType;

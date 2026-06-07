@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { WORKOUT_TYPE_LABELS } from "@/lib/constants";
+import { WORKOUT_STATUS_LABELS } from "@/lib/workout-status";
 import { formatDistance } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -108,27 +109,27 @@ export default async function PlanDetailPage({ params }: PageProps) {
                         variant={
                           workout.status === "COMPLETED"
                             ? "success"
-                            : workout.status === "MISSED"
-                              ? "destructive"
+                            : workout.status === "OVERDUE" ||
+                                workout.status === "MISSED"
+                              ? "warning"
                               : "secondary"
                         }
                       >
-                        {workout.status === "COMPLETED"
-                          ? "Concluído"
-                          : workout.status === "MISSED"
-                            ? "Perdido"
-                            : "Agendado"}
+                        {WORKOUT_STATUS_LABELS[workout.status]}
                       </Badge>
+                      <RescheduleWorkoutButton
+                        workoutId={workout.id}
+                        currentDate={workout.date}
+                      />
+                      <Link href={`/workouts/${workout.id}/edit`}>
+                        <Button size="sm" variant="outline">
+                          Editar
+                        </Button>
+                      </Link>
                       {workout.status !== "COMPLETED" && (
-                        <>
-                          <RescheduleWorkoutButton
-                            workoutId={workout.id}
-                            currentDate={workout.date}
-                          />
-                          <Link href={`/workouts/${workout.id}/complete`}>
-                            <Button size="sm">Concluir</Button>
-                          </Link>
-                        </>
+                        <Link href={`/workouts/${workout.id}/complete`}>
+                          <Button size="sm">Concluir</Button>
+                        </Link>
                       )}
                     </div>
                   </CardContent>

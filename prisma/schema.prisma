@@ -42,6 +42,7 @@ enum WorkoutType {
 enum WorkoutStatus {
   SCHEDULED
   COMPLETED
+  OVERDUE
   MISSED
 }
 

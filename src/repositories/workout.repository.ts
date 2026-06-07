@@ -25,14 +25,23 @@ export const workoutRepository = {
     });
   },
 
-  findNextScheduled(planId?: string) {
-    const today = new Date();
-    today.setHours(23, 59, 59, 999);
+  async findNextScheduled(planId?: string) {
+    const planFilter = planId ? { planId } : {};
+
+    const overdue = await prisma.workout.findFirst({
+      where: {
+        status: { in: ["OVERDUE", "MISSED"] },
+        ...planFilter,
+      },
+      orderBy: { date: "asc" },
+      include: { plan: true },
+    });
+    if (overdue) return overdue;
+
     return prisma.workout.findFirst({
       where: {
         status: "SCHEDULED",
-        date: { gte: new Date() },
-        ...(planId ? { planId } : {}),
+        ...planFilter,
       },
       orderBy: { date: "asc" },
       include: { plan: true },
@@ -62,13 +71,21 @@ export const workoutRepository = {
     return prisma.workout.delete({ where: { id } });
   },
 
-  markMissedBefore(date: Date) {
+  markOverdueBefore(date: Date) {
     return prisma.workout.updateMany({
       where: {
         status: "SCHEDULED",
         date: { lt: date },
       },
-      data: { status: "MISSED" },
+      data: { status: "OVERDUE" },
+    });
+  },
+
+  /** Migra registros legados MISSED para OVERDUE */
+  migrateMissedToOverdue() {
+    return prisma.workout.updateMany({
+      where: { status: "MISSED" },
+      data: { status: "OVERDUE" },
     });
   },
 

@@ -21,6 +21,7 @@ import { WORKOUT_TYPE_LABELS } from "@/lib/constants";
 import { formatDistance } from "@/lib/utils";
 import Link from "next/link";
 import type { WorkoutStatus, WorkoutType } from "@prisma/client";
+import { WORKOUT_STATUS_LABELS } from "@/lib/workout-status";
 import { RescheduleWorkoutButton } from "@/components/workouts/reschedule-workout-button";
 
 interface CalendarWorkout {
@@ -47,8 +48,9 @@ function getDayColor(
   switch (workout.status) {
     case "COMPLETED":
       return "bg-primary/25";
+    case "OVERDUE":
     case "MISSED":
-      return "bg-destructive/25";
+      return "bg-primary/20 ring-1 ring-primary/40";
     case "SCHEDULED":
       return "bg-muted/60";
     default:
@@ -156,7 +158,8 @@ export function WorkoutCalendar({
               <span className="w-3 h-3 rounded bg-primary/30" /> Concluído
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-3 h-3 rounded bg-destructive/30" /> Perdido
+              <span className="w-3 h-3 rounded bg-primary/20 ring-1 ring-primary/40" />{" "}
+              Atrasado
             </span>
             <span className="flex items-center gap-1">
               <span className="w-3 h-3 rounded bg-primary/30 ring-1 ring-primary" />{" "}
@@ -192,11 +195,7 @@ export function WorkoutCalendar({
                     </div>
                     <div>
                       <span className="text-muted-foreground">Status: </span>
-                      {selectedWorkout.status === "COMPLETED"
-                        ? "Concluído"
-                        : selectedWorkout.status === "MISSED"
-                          ? "Perdido"
-                          : "Agendado"}
+                      {WORKOUT_STATUS_LABELS[selectedWorkout.status]}
                     </div>
                   </div>
                   {selectedWorkout.notes && (
@@ -205,16 +204,19 @@ export function WorkoutCalendar({
                     </p>
                   )}
                   <div className="flex flex-wrap gap-2">
+                    <RescheduleWorkoutButton
+                      workoutId={selectedWorkout.id}
+                      currentDate={selectedWorkout.date}
+                    />
+                    <Link href={`/workouts/${selectedWorkout.id}/edit`}>
+                      <Button size="sm" variant="outline">
+                        Editar
+                      </Button>
+                    </Link>
                     {selectedWorkout.status !== "COMPLETED" && (
-                      <>
-                        <RescheduleWorkoutButton
-                          workoutId={selectedWorkout.id}
-                          currentDate={selectedWorkout.date}
-                        />
-                        <Link href={`/workouts/${selectedWorkout.id}/complete`}>
-                          <Button size="sm">Concluir</Button>
-                        </Link>
-                      </>
+                      <Link href={`/workouts/${selectedWorkout.id}/complete`}>
+                        <Button size="sm">Concluir</Button>
+                      </Link>
                     )}
                   </div>
                 </div>

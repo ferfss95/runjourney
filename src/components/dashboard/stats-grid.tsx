@@ -64,7 +64,7 @@ const statItems = (
     color: "text-primary",
   },
   {
-    label: "Perdidos",
+    label: "Atrasados",
     value: String(stats?.missedCount ?? 0),
     icon: XCircle,
     color: "text-destructive",

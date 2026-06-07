@@ -23,7 +23,9 @@ export const statsService = {
     }
 
     const completedCount = completed.length;
-    const missedCount = allWorkouts.filter((w) => w.status === "MISSED").length;
+    const missedCount = allWorkouts.filter(
+      (w) => w.status === "OVERDUE" || w.status === "MISSED"
+    ).length;
     const avgPace = completedCount > 0 ? totalPaceSum / completedCount : null;
 
     const { currentStreak, bestStreak } = calculateStreaks(completed);
@@ -177,7 +179,10 @@ export const statsService = {
 
     if (activePlan) {
       const remaining = activePlan.workouts.filter(
-        (w) => w.status === "SCHEDULED"
+        (w) =>
+          w.status === "SCHEDULED" ||
+          w.status === "OVERDUE" ||
+          w.status === "MISSED"
       ).length;
       if (remaining > 0) {
         insights.push(

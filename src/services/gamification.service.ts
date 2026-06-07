@@ -1,6 +1,7 @@
 import { ACHIEVEMENT_DEFINITIONS, WORKOUT_TYPE_XP } from "@/lib/constants";
 import { levelFromXp } from "@/lib/utils";
 import { statsRepository } from "@/repositories/stats.repository";
+import { workoutRepository } from "@/repositories/workout.repository";
 import type { AchievementType, WorkoutType } from "@prisma/client";
 
 export const gamificationService = {
@@ -69,6 +70,51 @@ export const gamificationService = {
     }
 
     return unlocked;
+  },
+
+  async revokeXpForWorkout(workoutId: string) {
+    await statsRepository.removeXpByWorkoutId(workoutId);
+    const total = await statsRepository.getTotalXp();
+    const totalXp = total._sum.amount ?? 0;
+    await statsRepository.updateUserStats({
+      totalXp,
+      level: levelFromXp(totalXp),
+    });
+  },
+
+  async syncAchievements() {
+    const completed = await workoutRepository.getCompletedWithExecutions();
+
+    const completedCount = completed.length;
+    const totalDistance = completed.reduce(
+      (s, w) => s + (w.execution?.actualDistance ?? 0),
+      0
+    );
+    const hasLongRun = completed.some((w) => w.type === "LONG_RUN");
+    const maxSingleRun = completed.reduce(
+      (max, w) => Math.max(max, w.execution?.actualDistance ?? 0),
+      0
+    );
+
+    const checks: { type: AchievementType; condition: boolean }[] = [
+      { type: "FIRST_RUN", condition: completedCount >= 1 },
+      { type: "FIVE_WORKOUTS", condition: completedCount >= 5 },
+      { type: "TEN_WORKOUTS", condition: completedCount >= 10 },
+      { type: "TWENTY_FIVE_WORKOUTS", condition: completedCount >= 25 },
+      { type: "FIFTY_KM", condition: totalDistance >= 50 },
+      { type: "HUNDRED_KM", condition: totalDistance >= 100 },
+      { type: "FIRST_LONG_RUN", condition: hasLongRun },
+      { type: "FIRST_10K", condition: maxSingleRun >= 10 },
+      { type: "FIRST_HALF_MARATHON", condition: maxSingleRun >= 21.1 },
+    ];
+
+    for (const check of checks) {
+      if (check.condition) {
+        await statsRepository.unlockAchievement(check.type);
+      } else {
+        await statsRepository.lockAchievement(check.type);
+      }
+    }
   },
 
   async getGamificationData() {

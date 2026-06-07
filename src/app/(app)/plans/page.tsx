@@ -6,21 +6,18 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Target } from "lucide-react";
-import { redirect } from "next/navigation";
 
 export default async function PlansPage() {
   const plans = await planRepository.findAll();
 
-  if (plans.length === 1) {
-    redirect(`/plans/${plans[0].id}`);
-  }
-
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Plano de Treino</h1>
+        <h1 className="text-2xl font-bold">Planos de Treino</h1>
         <p className="text-muted-foreground text-sm">
-          Seu plano oficial de preparação para a meia maratona
+          {plans.length === 1
+            ? "1 plano disponível"
+            : `${plans.length} planos disponíveis`}
         </p>
       </div>
 
@@ -32,9 +29,9 @@ export default async function PlansPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {plans.map((plan) => (
-            <Card key={plan.id} className="glass-card">
+            <Card key={plan.id} className="glass-card hover:border-primary/40 transition-colors">
               <CardHeader className="flex flex-row items-start justify-between pb-2">
                 <div>
                   <CardTitle className="text-lg">{plan.name}</CardTitle>
@@ -51,9 +48,9 @@ export default async function PlansPage() {
                   {plan.workouts.length} treinos concluídos de{" "}
                   {plan._count.workouts} total
                 </p>
-                <Link href={`/plans/${plan.id}`}>
-                  <Button size="sm" variant="outline">
-                    Ver detalhes
+                <Link href={`/plans/${plan.id}`} className="block">
+                  <Button size="sm" className="w-full">
+                    Abrir plano
                   </Button>
                 </Link>
               </CardContent>

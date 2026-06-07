@@ -93,23 +93,93 @@ export const workoutService = {
   async rescheduleWorkout(workoutId: string, dateStr: string) {
     const workout = await workoutRepository.findById(workoutId);
     if (!workout) throw new Error("Treino não encontrado");
-    if (workout.status === "COMPLETED")
-      throw new Error("Treino já concluído não pode ser reagendado");
 
     const newDate = new Date(dateStr + "T08:00:00");
 
     await workoutRepository.update(workoutId, {
       date: newDate,
-      status: "SCHEDULED",
+      ...(workout.status !== "COMPLETED" ? { status: "SCHEDULED" as const } : {}),
     });
 
     await statsService.recalculateStats();
   },
 
-  async markMissedWorkouts() {
+  async updateCompletedWorkout(
+    workoutId: string,
+    data: {
+      completedDate: string;
+      actualDistance: number;
+      actualTime: number;
+      heartRate?: number;
+      notes?: string;
+    }
+  ) {
+    const workout = await workoutRepository.findById(workoutId);
+    if (!workout) throw new Error("Treino não encontrado");
+    if (workout.status !== "COMPLETED" || !workout.execution)
+      throw new Error("Treino não está concluído");
+
+    const completedDate = new Date(data.completedDate + "T08:00:00");
+    const pace = calculatePace(data.actualDistance, data.actualTime);
+    const distanceDiff = data.actualDistance - workout.plannedDistance;
+    const timeDiff = data.actualTime - (workout.plannedTime ?? 0);
+    const adherencePercent =
+      workout.plannedDistance > 0
+        ? Math.min(
+            100,
+            Math.round((data.actualDistance / workout.plannedDistance) * 100)
+          )
+        : 100;
+
+    await prisma.$transaction([
+      prisma.workoutExecution.update({
+        where: { workoutId },
+        data: {
+          actualDistance: data.actualDistance,
+          actualTime: data.actualTime,
+          pace,
+          heartRate: data.heartRate,
+          notes: data.notes,
+          adherencePercent,
+          distanceDiff,
+          timeDiff,
+          completedAt: completedDate,
+        },
+      }),
+      prisma.workout.update({
+        where: { id: workoutId },
+        data: { date: completedDate },
+      }),
+    ]);
+
+    await statsService.recalculateStats();
+    await gamificationService.syncAchievements();
+  },
+
+  async uncompleteWorkout(workoutId: string) {
+    const workout = await workoutRepository.findById(workoutId);
+    if (!workout) throw new Error("Treino não encontrado");
+    if (workout.status !== "COMPLETED")
+      throw new Error("Treino não está concluído");
+
+    await prisma.$transaction([
+      prisma.workoutExecution.delete({ where: { workoutId } }),
+      prisma.workout.update({
+        where: { id: workoutId },
+        data: { status: "SCHEDULED" },
+      }),
+    ]);
+
+    await gamificationService.revokeXpForWorkout(workoutId);
+    await statsService.recalculateStats();
+    await gamificationService.syncAchievements();
+  },
+
+  async markOverdueWorkouts() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    await workoutRepository.markMissedBefore(today);
+    await workoutRepository.markOverdueBefore(today);
+    await workoutRepository.migrateMissedToOverdue();
     await statsService.recalculateStats();
   },
 
