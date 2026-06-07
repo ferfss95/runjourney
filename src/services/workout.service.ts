@@ -110,6 +110,7 @@ export const workoutService = {
       completedDate: string;
       actualDistance: number;
       actualTime: number;
+      weight?: number;
       heartRate?: number;
       notes?: string;
     }
@@ -138,6 +139,7 @@ export const workoutService = {
           actualDistance: data.actualDistance,
           actualTime: data.actualTime,
           pace,
+          weight: data.weight,
           heartRate: data.heartRate,
           notes: data.notes,
           adherencePercent,

@@ -45,6 +45,7 @@ export async function updateCompletedWorkoutAction(formData: FormData) {
     completedDate: formData.get("completedDate") || undefined,
     actualDistance: formData.get("actualDistance"),
     actualTime: formData.get("actualTime"),
+    weight: formData.get("weight") || undefined,
     heartRate: formData.get("heartRate") || undefined,
     notes: formData.get("notes") || undefined,
   });
@@ -62,6 +63,7 @@ export async function updateCompletedWorkoutAction(formData: FormData) {
       completedDate: parsed.data.completedDate,
       actualDistance: parsed.data.actualDistance,
       actualTime: parsed.data.actualTime,
+      weight: parsed.data.weight,
       heartRate: parsed.data.heartRate,
       notes: parsed.data.notes,
     });

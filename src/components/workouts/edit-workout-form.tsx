@@ -33,6 +33,7 @@ interface EditWorkoutFormProps {
     execution: {
       actualDistance: number;
       actualTime: number;
+      weight: number | null;
       heartRate: number | null;
       notes: string | null;
     } | null;
@@ -65,6 +66,9 @@ export function EditWorkoutForm({ workout }: EditWorkoutFormProps) {
   const [timeSeconds, setTimeSeconds] = useState(
     workout.execution?.actualTime ?? workout.plannedTime ?? 0
   );
+  const [weight, setWeight] = useState(
+    workout.execution?.weight ? numToDistStr(workout.execution.weight) : ""
+  );
   const [heartRate, setHeartRate] = useState(
     workout.execution?.heartRate ? String(workout.execution.heartRate) : ""
   );
@@ -89,6 +93,8 @@ export function EditWorkoutForm({ workout }: EditWorkoutFormProps) {
     formData.set("completedDate", completedDate);
     formData.set("actualDistance", String(distance));
     formData.set("actualTime", String(timeSeconds));
+    const parsedWeight = parseDecimal(weight);
+    if (weight && !isNaN(parsedWeight)) formData.set("weight", String(parsedWeight));
     if (heartRate) formData.set("heartRate", heartRate);
     formData.set("notes", notes);
 
@@ -195,15 +201,28 @@ export function EditWorkoutForm({ workout }: EditWorkoutFormProps) {
             </Card>
           )}
 
-          <div className="space-y-2">
-            <Label htmlFor="heartRate">Freq. cardíaca (bpm)</Label>
-            <Input
-              id="heartRate"
-              type="number"
-              value={heartRate}
-              onChange={(e) => setHeartRate(e.target.value)}
-              placeholder="Opcional"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="weight">Peso atual (kg)</Label>
+              <Input
+                id="weight"
+                type="text"
+                inputMode="decimal"
+                placeholder="95,0"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="heartRate">Freq. cardíaca (bpm)</Label>
+              <Input
+                id="heartRate"
+                type="number"
+                value={heartRate}
+                onChange={(e) => setHeartRate(e.target.value)}
+                placeholder="Opcional"
+              />
+            </div>
           </div>
 
           <div className="space-y-2">

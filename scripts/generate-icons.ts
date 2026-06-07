@@ -19,7 +19,7 @@ const source = readFileSync(sourcePath);
 async function resizeDirect(size: number): Promise<Buffer> {
   return sharp(source)
     .resize(size, size, { fit: "cover", position: "centre" })
-    .removeAlpha() // garante fundo sólido (sem transparência que vira preto)
+    .flatten({ background: "#000000" }) // preenche transparência com preto em vez de branco
     .png()
     .toBuffer();
 }
