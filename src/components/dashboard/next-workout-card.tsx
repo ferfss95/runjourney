@@ -4,8 +4,8 @@ import { ptBR } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { WORKOUT_TYPE_LABELS } from "@/lib/constants";
 import { formatDistance, formatDuration } from "@/lib/utils";
+import { WorkoutSessionInfo } from "@/components/workouts/workout-session-info";
 import type { WorkoutStatus, WorkoutType } from "@prisma/client";
 import { Calendar, CheckCircle2 } from "lucide-react";
 
@@ -53,7 +53,6 @@ export function NextWorkoutCard({ workout }: NextWorkoutCardProps) {
 
   const timeLabel = isCompleted ? "Tempo realizado" : "Tempo previsto";
   const distanceLabel = isCompleted ? "Distância real" : "Distância";
-
   return (
     <Card
       className={`glass-card ${
@@ -94,13 +93,9 @@ export function NextWorkoutCard({ workout }: NextWorkoutCardProps) {
           </span>
         </div>
 
+        <WorkoutSessionInfo type={workout.type} notes={workout.notes} />
+
         <div className="grid grid-cols-2 gap-2">
-          <div className="rounded-lg bg-muted/50 p-2.5">
-            <p className="text-xs text-muted-foreground">Tipo</p>
-            <p className="font-semibold text-sm">
-              {WORKOUT_TYPE_LABELS[workout.type]}
-            </p>
-          </div>
           <div className="rounded-lg bg-muted/50 p-2.5">
             <p className="text-xs text-muted-foreground">{distanceLabel}</p>
             <p className="font-semibold text-sm text-primary">
@@ -116,12 +111,6 @@ export function NextWorkoutCard({ workout }: NextWorkoutCardProps) {
             </div>
           )}
         </div>
-
-        {workout.notes && (
-          <p className="text-sm text-muted-foreground italic line-clamp-2">
-            {workout.notes}
-          </p>
-        )}
 
         {!isCompleted && (
           <Link href={`/workouts/${workout.id}/complete`}>

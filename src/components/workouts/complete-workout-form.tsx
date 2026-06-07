@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { DurationInput } from "@/components/ui/duration-input";
 import { completeWorkoutAction } from "@/actions/workout.actions";
-import { WORKOUT_TYPE_LABELS } from "@/lib/constants";
+import { WorkoutSessionInfo } from "@/components/workouts/workout-session-info";
 import { calculatePace, formatDistance, formatPace } from "@/lib/utils";
 import type { WorkoutType } from "@prisma/client";
 import { useRouter } from "next/navigation";
@@ -101,13 +101,13 @@ export function CompleteWorkoutForm({ workout }: CompleteWorkoutFormProps) {
   return (
     <div className="space-y-6">
       <Card className="glass-card">
-        <CardContent className="p-4 space-y-1">
-          <p className="text-sm text-muted-foreground">Treino planejado</p>
-          <p className="font-semibold">{WORKOUT_TYPE_LABELS[workout.type]}</p>
-          <p>
+        <CardContent className="p-4 space-y-3">
+          <WorkoutSessionInfo type={workout.type} notes={workout.notes} />
+          <p className="text-sm">
+            <span className="text-muted-foreground">Distância planejada: </span>
             {formatDistance(workout.plannedDistance)}
             {workout.plannedTime &&
-              ` • ${Math.floor(workout.plannedTime / 60)}min`}
+              ` • ${Math.floor(workout.plannedTime / 60)} min`}
           </p>
           <p className="text-sm text-muted-foreground">
             Data planejada:{" "}

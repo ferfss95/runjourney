@@ -14,7 +14,7 @@ import {
   uncompleteWorkoutAction,
 } from "@/actions/workout.actions";
 import { RescheduleWorkoutButton } from "@/components/workouts/reschedule-workout-button";
-import { WORKOUT_TYPE_LABELS } from "@/lib/constants";
+import { WorkoutSessionInfo } from "@/components/workouts/workout-session-info";
 import { calculatePace, formatDistance, formatPace } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -136,13 +136,11 @@ export function EditWorkoutForm({ workout }: EditWorkoutFormProps) {
   return (
     <div className="space-y-6">
       <Card className="glass-card">
-        <CardContent className="p-4 space-y-1">
-          <p className="text-sm text-muted-foreground">
-            {workout.notes ?? WORKOUT_TYPE_LABELS[workout.type]}
-          </p>
-          <p className="font-semibold">{WORKOUT_TYPE_LABELS[workout.type]}</p>
+        <CardContent className="p-4 space-y-3">
+          <WorkoutSessionInfo type={workout.type} notes={workout.notes} />
           <p className="text-sm">
-            Planejado: {formatDistance(workout.plannedDistance)}
+            <span className="text-muted-foreground">Distância planejada: </span>
+            {formatDistance(workout.plannedDistance)}
           </p>
           <p className="text-sm text-muted-foreground">
             {format(new Date(workout.date), "EEEE, d 'de' MMMM yyyy", {

@@ -16,7 +16,7 @@ import { ptBR } from "date-fns/locale";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { WORKOUT_TYPE_LABELS } from "@/lib/constants";
+import { WorkoutSessionInfo } from "@/components/workouts/workout-session-info";
 import { formatDistance } from "@/lib/utils";
 import Link from "next/link";
 import type { WorkoutStatus, WorkoutType } from "@prisma/client";
@@ -179,11 +179,11 @@ export function WorkoutCalendar({
               </p>
               {selectedWorkout ? (
                 <div className="space-y-3">
+                  <WorkoutSessionInfo
+                    type={selectedWorkout.type}
+                    notes={selectedWorkout.notes}
+                  />
                   <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div>
-                      <span className="text-muted-foreground">Tipo: </span>
-                      {WORKOUT_TYPE_LABELS[selectedWorkout.type]}
-                    </div>
                     <div>
                       <span className="text-muted-foreground">Distância: </span>
                       {formatDistance(selectedWorkout.plannedDistance)}
@@ -193,11 +193,6 @@ export function WorkoutCalendar({
                       {WORKOUT_STATUS_LABELS[selectedWorkout.status]}
                     </div>
                   </div>
-                  {selectedWorkout.notes && (
-                    <p className="text-sm text-muted-foreground italic">
-                      {selectedWorkout.notes}
-                    </p>
-                  )}
                   <div className="flex flex-wrap gap-2">
                     <RescheduleWorkoutButton
                       workoutId={selectedWorkout.id}

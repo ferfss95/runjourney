@@ -5,8 +5,8 @@ import { planRepository } from "@/repositories/plan.repository";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { WORKOUT_TYPE_LABELS } from "@/lib/constants";
 import { WORKOUT_STATUS_LABELS } from "@/lib/workout-status";
+import { WorkoutSessionInfo } from "@/components/workouts/workout-session-info";
 import { formatDistance } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -81,15 +81,17 @@ async function PlanContent({ id }: { id: string }) {
               {workoutsByWeek[week].map((workout) => (
                 <Card key={workout.id} className="glass-card">
                   <CardContent className="p-3 sm:p-4">
-                    <div className="flex items-start justify-between gap-2 mb-2">
-                      <div className="min-w-0 flex-1">
+                    <div className="flex items-start justify-between gap-2 mb-3">
+                      <div className="min-w-0 flex-1 space-y-2">
                         <p className="font-medium text-sm sm:text-base">
-                          {format(workout.date, "EEE, d MMM", { locale: ptBR })}
+                          {format(workout.date, "EEE, d MMM", { locale: ptBR })}{" "}
+                          • {formatDistance(workout.plannedDistance)}
                         </p>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {WORKOUT_TYPE_LABELS[workout.type]} •{" "}
-                          {formatDistance(workout.plannedDistance)}
-                        </p>
+                        <WorkoutSessionInfo
+                          type={workout.type}
+                          notes={workout.notes}
+                          compact
+                        />
                       </div>
                       <Badge
                         variant={
