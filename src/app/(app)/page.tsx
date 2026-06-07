@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { GoalCard } from "@/components/dashboard/goal-card";
 import { NextWorkoutCard } from "@/components/dashboard/next-workout-card";
 import { StreakCard } from "@/components/dashboard/streak-card";

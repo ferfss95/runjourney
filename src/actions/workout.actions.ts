@@ -33,6 +33,10 @@ export async function createWorkoutAction(_formData: FormData) {
   return { error: "Treinos são definidos pelo plano Meia Maratona 2026." };
 }
 
+export async function updateWorkoutAction(_id: string, _formData: FormData) {
+  return { error: "Treinos são definidos pelo plano Meia Maratona 2026." };
+}
+
 const updateCompletedSchema = completeSchema;
 
 export async function updateCompletedWorkoutAction(formData: FormData) {
