@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { planRepository } from "@/repositories/plan.repository";
@@ -16,8 +17,7 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function PlanDetailPage({ params }: PageProps) {
-  const { id } = await params;
+async function PlanContent({ id }: { id: string }) {
   const plan = await planRepository.findById(id);
   if (!plan) notFound();
 
@@ -39,22 +39,11 @@ export default async function PlanDetailPage({ params }: PageProps) {
     .sort((a, b) => a - b);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <Link href="/">
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </Link>
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold">{plan.name}</h1>
-            <Badge variant="success">Ativo</Badge>
-          </div>
-          <p className="text-muted-foreground">{plan.goal}</p>
-        </div>
+    <>
+      <div className="flex items-center gap-2">
+        <h1 className="text-2xl font-bold">{plan.name}</h1>
+        <Badge variant="success">Ativo</Badge>
       </div>
-
       {plan.description && (
         <p className="text-sm text-muted-foreground">{plan.description}</p>
       )}
@@ -138,6 +127,53 @@ export default async function PlanDetailPage({ params }: PageProps) {
             </div>
           </div>
         ))}
+      </div>
+    </>
+  );
+}
+
+function PlanSkeleton() {
+  return (
+    <div className="space-y-4 animate-pulse">
+      <div className="grid grid-cols-3 gap-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-20 rounded-xl bg-card/70" />
+        ))}
+      </div>
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="space-y-2">
+          <div className="h-5 w-24 rounded bg-card/70" />
+          {[1, 2, 3].map((j) => (
+            <div key={j} className="h-20 rounded-xl bg-card/70" />
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default async function PlanDetailPage({ params }: PageProps) {
+  const { id } = await params;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center gap-3">
+        <Link href="/plans">
+          <Button variant="ghost" size="icon">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+        </Link>
+        <div className="flex-1 min-w-0">
+          <Suspense
+            fallback={
+              <div className="space-y-6">
+                <PlanSkeleton />
+              </div>
+            }
+          >
+            <PlanContent id={id} />
+          </Suspense>
+        </div>
       </div>
     </div>
   );
