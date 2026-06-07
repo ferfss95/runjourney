@@ -1,6 +1,3 @@
-"use client";
-
-import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDistance, formatPace } from "@/lib/utils";
 import {
@@ -82,25 +79,18 @@ export function StatsGrid({ stats }: StatsGridProps) {
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-      {items.map((item, i) => (
-        <motion.div
-          key={item.label}
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, delay: 0.1 * i }}
-        >
-          <Card className="glass-card">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <item.icon className={`h-4 w-4 ${item.color}`} />
-                <span className="text-xs text-muted-foreground">
-                  {item.label}
-                </span>
-              </div>
-              <p className="text-xl font-bold">{item.value}</p>
-            </CardContent>
-          </Card>
-        </motion.div>
+      {items.map((item) => (
+        <Card key={item.label} className="glass-card">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex items-center gap-2 mb-1.5">
+              <item.icon className={`h-4 w-4 shrink-0 ${item.color}`} />
+              <span className="text-xs text-muted-foreground truncate">
+                {item.label}
+              </span>
+            </div>
+            <p className="text-xl font-bold">{item.value}</p>
+          </CardContent>
+        </Card>
       ))}
     </div>
   );

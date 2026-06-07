@@ -91,20 +91,17 @@ export default async function PlanDetailPage({ params }: PageProps) {
             <div className="space-y-2">
               {workoutsByWeek[week].map((workout) => (
                 <Card key={workout.id} className="glass-card">
-                  <CardContent className="p-4 flex items-center justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium">
-                        {format(workout.date, "EEE, d MMM", { locale: ptBR })}
-                      </p>
-                      <p className="text-sm text-muted-foreground truncate">
-                        {workout.notes}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {WORKOUT_TYPE_LABELS[workout.type]} •{" "}
-                        {formatDistance(workout.plannedDistance)}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm sm:text-base">
+                          {format(workout.date, "EEE, d MMM", { locale: ptBR })}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {WORKOUT_TYPE_LABELS[workout.type]} •{" "}
+                          {formatDistance(workout.plannedDistance)}
+                        </p>
+                      </div>
                       <Badge
                         variant={
                           workout.status === "COMPLETED"
@@ -114,9 +111,12 @@ export default async function PlanDetailPage({ params }: PageProps) {
                               ? "warning"
                               : "secondary"
                         }
+                        className="shrink-0"
                       >
                         {WORKOUT_STATUS_LABELS[workout.status]}
                       </Badge>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
                       <RescheduleWorkoutButton
                         workoutId={workout.id}
                         currentDate={workout.date}

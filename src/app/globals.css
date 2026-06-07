@@ -52,7 +52,8 @@
 
 @layer utilities {
   .glass-card {
-    @apply border border-white/10 bg-card/90 backdrop-blur-sm;
+    /* backdrop-blur removido — melhora performance mobile significativamente */
+    @apply border border-white/10 bg-card;
   }
   .gradient-text {
     @apply bg-gradient-to-r from-primary to-white bg-clip-text text-transparent;

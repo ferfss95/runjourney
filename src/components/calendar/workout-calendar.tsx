@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 import {
   format,
   startOfMonth,
@@ -124,13 +123,12 @@ export function WorkoutCalendar({
               const isSelected = selectedDay && isSameDay(day, selectedDay);
 
               return (
-                <motion.button
+                <button
                   key={day.toISOString()}
-                  whileTap={{ scale: 0.95 }}
                   onClick={() => setSelectedDay(day)}
                   className={`
                     aspect-square rounded-lg flex flex-col items-center justify-center text-sm
-                    transition-all ${getDayColor(workout, isToday)}
+                    transition-colors active:scale-95 ${getDayColor(workout, isToday)}
                     ${!isSameMonth(day, currentMonth) ? "opacity-30" : ""}
                     ${isSelected ? "ring-2 ring-primary" : ""}
                     hover:opacity-80
@@ -148,7 +146,7 @@ export function WorkoutCalendar({
                       {workout.plannedDistance}k
                     </span>
                   )}
-                </motion.button>
+                </button>
               );
             })}
           </div>
@@ -173,10 +171,7 @@ export function WorkoutCalendar({
       </Card>
 
       {selectedDay && (
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
+        <div>
           <Card className="glass-card">
             <CardContent className="p-4">
               <p className="font-semibold mb-2">
@@ -227,7 +222,7 @@ export function WorkoutCalendar({
               )}
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
       )}
     </div>
   );

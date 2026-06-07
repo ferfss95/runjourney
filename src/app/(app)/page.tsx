@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { GoalCard } from "@/components/dashboard/goal-card";
 import { NextWorkoutCard } from "@/components/dashboard/next-workout-card";
 import { StreakCard } from "@/components/dashboard/streak-card";
@@ -8,7 +9,9 @@ import { DistanceChart } from "@/components/charts/distance-chart";
 import { statsService } from "@/services/stats.service";
 import { gamificationService } from "@/services/gamification.service";
 
-export default async function DashboardPage() {
+export const revalidate = 60;
+
+async function DashboardContent() {
   const [dashboard, chartData, insights, gamification] = await Promise.all([
     statsService.getDashboardStats(),
     statsService.getChartData(),
@@ -22,14 +25,7 @@ export default async function DashboardPage() {
   const displayWorkout = todayWorkout ?? nextWorkout;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground text-sm">
-          Acompanhe sua evolução e próximos treinos
-        </p>
-      </div>
-
+    <>
       {activePlan ? (
         <GoalCard
           planName={activePlan.name}
@@ -53,7 +49,7 @@ export default async function DashboardPage() {
         </div>
       )}
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
         <NextWorkoutCard
           workout={
             displayWorkout
@@ -80,13 +76,46 @@ export default async function DashboardPage() {
       </div>
 
       <StatsGrid stats={stats} />
-
       <InsightsCard insights={insights} />
 
       <DistanceChart
         weekly={chartData.weeklyDistance}
         monthly={chartData.monthlyDistance}
       />
+    </>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <>
+      <div className="h-44 rounded-xl bg-card/50 animate-pulse" />
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-36 rounded-xl bg-card/50 animate-pulse" />
+        ))}
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="h-24 rounded-xl bg-card/50 animate-pulse" />
+        ))}
+      </div>
+    </>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <p className="text-muted-foreground text-sm">
+          Acompanhe sua evolução e próximos treinos
+        </p>
+      </div>
+      <Suspense fallback={<DashboardSkeleton />}>
+        <DashboardContent />
+      </Suspense>
     </div>
   );
 }
