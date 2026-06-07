@@ -61,6 +61,12 @@ async function DashboardContent() {
                   plannedTime: displayWorkout.plannedTime,
                   notes: displayWorkout.notes,
                   status: displayWorkout.status,
+                  execution: displayWorkout.execution
+                    ? {
+                        actualDistance: displayWorkout.execution.actualDistance,
+                        actualTime: displayWorkout.execution.actualTime,
+                      }
+                    : null,
                 }
               : null
           }

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
+import { DurationInput } from "@/components/ui/duration-input";
 import {
   updateCompletedWorkoutAction,
   uncompleteWorkoutAction,
@@ -38,6 +39,15 @@ interface EditWorkoutFormProps {
   };
 }
 
+/** Converte string com vírgula ou ponto para número */
+function parseDecimal(value: string): number {
+  return parseFloat(value.replace(",", "."));
+}
+
+function numToDistStr(n: number) {
+  return String(n).replace(".", ",");
+}
+
 export function EditWorkoutForm({ workout }: EditWorkoutFormProps) {
   const router = useRouter();
   const isCompleted = workout.status === "COMPLETED" && workout.execution;
@@ -49,23 +59,23 @@ export function EditWorkoutForm({ workout }: EditWorkoutFormProps) {
   const [completedDate, setCompletedDate] = useState(
     workout.date.toISOString().split("T")[0]
   );
-  const [distance, setDistance] = useState(
-    String(workout.execution?.actualDistance ?? workout.plannedDistance)
+  const [distanceStr, setDistanceStr] = useState(
+    numToDistStr(workout.execution?.actualDistance ?? workout.plannedDistance)
   );
-  const [time, setTime] = useState(
-    String(workout.execution?.actualTime ?? workout.plannedTime ?? "")
+  const [timeSeconds, setTimeSeconds] = useState(
+    workout.execution?.actualTime ?? workout.plannedTime ?? 0
   );
   const [heartRate, setHeartRate] = useState(
     workout.execution?.heartRate ? String(workout.execution.heartRate) : ""
   );
   const [notes, setNotes] = useState(workout.execution?.notes ?? "");
 
+  const distance = parseDecimal(distanceStr);
+
   const pace = useMemo(() => {
-    const d = parseFloat(distance);
-    const t = parseInt(time);
-    if (!d || !t) return null;
-    return calculatePace(d, t);
-  }, [distance, time]);
+    if (!distance || !timeSeconds) return null;
+    return calculatePace(distance, timeSeconds);
+  }, [distance, timeSeconds]);
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -77,8 +87,8 @@ export function EditWorkoutForm({ workout }: EditWorkoutFormProps) {
     const formData = new FormData();
     formData.set("workoutId", workout.id);
     formData.set("completedDate", completedDate);
-    formData.set("actualDistance", distance);
-    formData.set("actualTime", time);
+    formData.set("actualDistance", String(distance));
+    formData.set("actualTime", String(timeSeconds));
     if (heartRate) formData.set("heartRate", heartRate);
     formData.set("notes", notes);
 
@@ -95,7 +105,11 @@ export function EditWorkoutForm({ workout }: EditWorkoutFormProps) {
   }
 
   async function handleUncomplete() {
-    if (!confirm("Marcar este treino como não concluído? Os dados registrados serão removidos."))
+    if (
+      !confirm(
+        "Marcar este treino como não concluído? Os dados registrados serão removidos."
+      )
+    )
       return;
 
     setUncompleting(true);
@@ -150,22 +164,21 @@ export function EditWorkoutForm({ workout }: EditWorkoutFormProps) {
               <Label htmlFor="actualDistance">Distância realizada (km)</Label>
               <Input
                 id="actualDistance"
-                type="number"
-                step="0.1"
-                min="0.1"
-                value={distance}
-                onChange={(e) => setDistance(e.target.value)}
+                type="text"
+                inputMode="decimal"
+                placeholder="3,01"
+                value={distanceStr}
+                onChange={(e) => setDistanceStr(e.target.value)}
                 required
               />
+              <p className="text-xs text-muted-foreground">Ex: 3,01 ou 10,5</p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="actualTime">Tempo realizado (segundos)</Label>
-              <Input
-                id="actualTime"
-                type="number"
-                min="1"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
+              <Label>Tempo realizado</Label>
+              <DurationInput
+                name="actualTime-display"
+                defaultSeconds={timeSeconds}
+                onChange={setTimeSeconds}
                 required
               />
             </div>

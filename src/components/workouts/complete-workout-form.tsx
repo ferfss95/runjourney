@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
+import { DurationInput } from "@/components/ui/duration-input";
 import { completeWorkoutAction } from "@/actions/workout.actions";
 import { WORKOUT_TYPE_LABELS } from "@/lib/constants";
 import { calculatePace, formatDistance, formatPace } from "@/lib/utils";
@@ -26,36 +27,44 @@ interface CompleteWorkoutFormProps {
   };
 }
 
+/** Converte string com vírgula ou ponto para número */
+function parseDecimal(value: string): number {
+  return parseFloat(value.replace(",", "."));
+}
+
 export function CompleteWorkoutForm({ workout }: CompleteWorkoutFormProps) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
-  const [distance, setDistance] = useState(String(workout.plannedDistance));
-  const [time, setTime] = useState(
-    workout.plannedTime ? String(workout.plannedTime) : ""
+  const [distanceStr, setDistanceStr] = useState(
+    String(workout.plannedDistance).replace(".", ",")
   );
+  const [timeSeconds, setTimeSeconds] = useState(workout.plannedTime ?? 0);
   const [unlocked, setUnlocked] = useState<string[]>([]);
   const [completedDate, setCompletedDate] = useState(
     new Date().toISOString().split("T")[0]
   );
 
+  const distance = parseDecimal(distanceStr);
+
   const pace = useMemo(() => {
-    const d = parseFloat(distance);
-    const t = parseInt(time);
-    if (!d || !t) return null;
-    return calculatePace(d, t);
-  }, [distance, time]);
+    if (!distance || !timeSeconds) return null;
+    return calculatePace(distance, timeSeconds);
+  }, [distance, timeSeconds]);
 
   const adherence = useMemo(() => {
-    const d = parseFloat(distance);
-    if (!d || !workout.plannedDistance) return null;
-    return Math.min(100, Math.round((d / workout.plannedDistance) * 100));
+    if (!distance || !workout.plannedDistance) return null;
+    return Math.min(100, Math.round((distance / workout.plannedDistance) * 100));
   }, [distance, workout.plannedDistance]);
 
   async function handleSubmit(formData: FormData) {
     setPending(true);
     setError(null);
+
+    // Normaliza distância (troca vírgula por ponto para o servidor)
+    formData.set("actualDistance", String(distance));
     formData.set("workoutId", workout.id);
+
     const result = await completeWorkoutAction(formData);
     if (result?.error) {
       setError(result.error);
@@ -131,24 +140,21 @@ export function CompleteWorkoutForm({ workout }: CompleteWorkoutFormProps) {
             <Input
               id="actualDistance"
               name="actualDistance"
-              type="number"
-              step="0.1"
-              min="0.1"
-              value={distance}
-              onChange={(e) => setDistance(e.target.value)}
+              type="text"
+              inputMode="decimal"
+              placeholder="3,01"
+              value={distanceStr}
+              onChange={(e) => setDistanceStr(e.target.value)}
               required
             />
+            <p className="text-xs text-muted-foreground">Ex: 3,01 ou 10,5</p>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="actualTime">Tempo realizado (segundos)</Label>
-            <Input
-              id="actualTime"
+            <Label>Tempo realizado</Label>
+            <DurationInput
               name="actualTime"
-              type="number"
-              min="1"
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
-              placeholder="Ex: 1800 = 30min"
+              defaultSeconds={workout.plannedTime ?? 0}
+              onChange={setTimeSeconds}
               required
             />
           </div>
@@ -168,7 +174,9 @@ export function CompleteWorkoutForm({ workout }: CompleteWorkoutFormProps) {
               <Card className="glass-card">
                 <CardContent className="p-3 text-center">
                   <p className="text-xs text-muted-foreground">Aderência</p>
-                  <p className="text-xl font-bold text-foreground">{adherence}%</p>
+                  <p className="text-xl font-bold text-foreground">
+                    {adherence}%
+                  </p>
                 </CardContent>
               </Card>
             )}
@@ -181,9 +189,9 @@ export function CompleteWorkoutForm({ workout }: CompleteWorkoutFormProps) {
             <Input
               id="weight"
               name="weight"
-              type="number"
-              step="0.1"
-              placeholder="95"
+              type="text"
+              inputMode="decimal"
+              placeholder="95,0"
             />
           </div>
           <div className="space-y-2">

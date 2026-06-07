@@ -34,7 +34,7 @@ export const workoutRepository = {
         ...planFilter,
       },
       orderBy: { date: "asc" },
-      include: { plan: true },
+      include: { plan: true, execution: true },
     });
     if (overdue) return overdue;
 
@@ -44,7 +44,7 @@ export const workoutRepository = {
         ...planFilter,
       },
       orderBy: { date: "asc" },
-      include: { plan: true },
+      include: { plan: true, execution: true },
     });
   },
 

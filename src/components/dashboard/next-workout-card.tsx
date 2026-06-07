@@ -18,6 +18,10 @@ interface NextWorkoutCardProps {
     plannedTime: number | null;
     notes: string | null;
     status: WorkoutStatus;
+    execution?: {
+      actualDistance: number;
+      actualTime: number;
+    } | null;
   } | null;
 }
 
@@ -37,6 +41,18 @@ export function NextWorkoutCard({ workout }: NextWorkoutCardProps) {
     new Date(workout.date).toDateString() === new Date().toDateString();
   const isOverdue =
     workout.status === "OVERDUE" || workout.status === "MISSED";
+  const isCompleted = workout.status === "COMPLETED";
+
+  const displayDistance = isCompleted && workout.execution
+    ? workout.execution.actualDistance
+    : workout.plannedDistance;
+
+  const displayTime = isCompleted && workout.execution
+    ? workout.execution.actualTime
+    : workout.plannedTime;
+
+  const timeLabel = isCompleted ? "Tempo realizado" : "Tempo previsto";
+  const distanceLabel = isCompleted ? "Distância real" : "Distância";
 
   return (
     <Card
@@ -51,13 +67,17 @@ export function NextWorkoutCard({ workout }: NextWorkoutCardProps) {
       <CardHeader className="pb-2 px-4 pt-4">
         <div className="flex items-center justify-between gap-2">
           <CardTitle className="text-base sm:text-lg">
-            {isOverdue
-              ? "Treino Atrasado"
-              : isToday
-                ? "Treino de Hoje"
-                : "Próximo Treino"}
+            {isCompleted
+              ? "Último Treino"
+              : isOverdue
+                ? "Treino Atrasado"
+                : isToday
+                  ? "Treino de Hoje"
+                  : "Próximo Treino"}
           </CardTitle>
-          {isOverdue ? (
+          {isCompleted ? (
+            <Badge variant="success">Concluído</Badge>
+          ) : isOverdue ? (
             <Badge variant="warning">Atrasado</Badge>
           ) : isToday ? (
             <Badge variant="warning">Hoje</Badge>
@@ -77,19 +97,21 @@ export function NextWorkoutCard({ workout }: NextWorkoutCardProps) {
         <div className="grid grid-cols-2 gap-2">
           <div className="rounded-lg bg-muted/50 p-2.5">
             <p className="text-xs text-muted-foreground">Tipo</p>
-            <p className="font-semibold text-sm">{WORKOUT_TYPE_LABELS[workout.type]}</p>
-          </div>
-          <div className="rounded-lg bg-muted/50 p-2.5">
-            <p className="text-xs text-muted-foreground">Distância</p>
-            <p className="font-semibold text-sm text-primary">
-              {formatDistance(workout.plannedDistance)}
+            <p className="font-semibold text-sm">
+              {WORKOUT_TYPE_LABELS[workout.type]}
             </p>
           </div>
-          {workout.plannedTime && (
+          <div className="rounded-lg bg-muted/50 p-2.5">
+            <p className="text-xs text-muted-foreground">{distanceLabel}</p>
+            <p className="font-semibold text-sm text-primary">
+              {formatDistance(displayDistance)}
+            </p>
+          </div>
+          {displayTime != null && (
             <div className="rounded-lg bg-muted/50 p-2.5">
-              <p className="text-xs text-muted-foreground">Tempo previsto</p>
+              <p className="text-xs text-muted-foreground">{timeLabel}</p>
               <p className="font-semibold text-sm">
-                {formatDuration(workout.plannedTime)}
+                {formatDuration(displayTime)}
               </p>
             </div>
           )}
@@ -101,7 +123,7 @@ export function NextWorkoutCard({ workout }: NextWorkoutCardProps) {
           </p>
         )}
 
-        {workout.status !== "COMPLETED" && (
+        {!isCompleted && (
           <Link href={`/workouts/${workout.id}/complete`}>
             <Button className="w-full mt-1" size="default">
               <CheckCircle2 className="h-4 w-4" />
