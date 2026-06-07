@@ -39,7 +39,7 @@ export function GoalCard({
             <p className="text-sm text-muted-foreground uppercase tracking-wider">
               Objetivo Atual
             </p>
-            <h2 className="text-2xl sm:text-3xl font-bold mt-1 gradient-text truncate">
+            <h2 className="text-2xl sm:text-3xl font-bold mt-1 gradient-text leading-tight break-words">
               {goal}
             </h2>
             <p className="text-muted-foreground text-sm mt-1 truncate">
