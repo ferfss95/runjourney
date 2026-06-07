@@ -1,35 +1,61 @@
-import { readFileSync } from "fs";
 import { join } from "path";
 import sharp from "sharp";
 
 const root = join(__dirname, "..");
 const sourcePath = join(root, "public", "app-icon-source.png");
-const source = readFileSync(sourcePath);
+
+const BG = "#0d0d0d"; // fundo sólido que combina com o ícone
 
 /**
- * Para ícones normais (favicon, apple-touch, manifest):
- * Usa a imagem diretamente sem padding — ela já tem o design final.
- *
- * Para o ícone maskable (Android adaptive icons):
- * O Android aplica uma máscara circular/arredondada sobre a área "safe zone" (80% do centro).
- * Como a imagem já tem fundo sólido e bordas arredondadas embutidas,
- * adicionamos um mínimo de padding (10%) com o preenchimento das cores da borda da imagem.
+ * Ícones normais (favicon, apple-touch, manifest "any"):
+ * Faz zoom de 10% para cortar as bordas brancas da imagem fonte
+ * e aplica fundo sólido para cobrir qualquer transparência.
  */
-
 async function resizeDirect(size: number): Promise<Buffer> {
-  return sharp(source)
+  // Redimensiona para 110% do tamanho alvo para cortar as bordas brancas
+  const oversized = Math.round(size * 1.1);
+  return sharp(sourcePath)
+    .resize(oversized, oversized, { fit: "cover", position: "centre" })
+    .flatten({ background: BG })
     .resize(size, size, { fit: "cover", position: "centre" })
-    .flatten({ background: "#000000" }) // preenche transparência com preto em vez de branco
     .png()
     .toBuffer();
 }
 
-async function generateMaskable(size: number): Promise<void> {
-  // Maskable: a imagem ocupa 100% (sem padding extra) para não perder conteúdo
-  // O Android já aplica a máscara em cima — usar a imagem cheia é o correto
-  await sharp(await resizeDirect(size))
+/**
+ * Ícone maskable (Android adaptive icon):
+ * Cria um canvas totalmente sólido e centraliza o conteúdo dentro
+ * da "safe zone" (80% central). O Android aplica sua própria máscara
+ * de forma (círculo, quadrado arredondado) em cima.
+ *
+ * Desta forma as bordas são sempre a cor de fundo sólida, nunca branco.
+ */
+async function generateMaskableFile(
+  canvasSize: number,
+  outFile: string
+): Promise<void> {
+  // Conteúdo ocupa 78% do canvas = dentro da safe zone (80%)
+  const contentSize = Math.round(canvasSize * 0.78);
+
+  const content = await sharp(sourcePath)
+    .resize(contentSize, contentSize, { fit: "cover", position: "centre" })
+    .flatten({ background: BG })
     .png()
-    .toFile(join(root, "public", "icon-512-maskable.png"));
+    .toBuffer();
+
+  const offset = Math.round((canvasSize - contentSize) / 2);
+
+  await sharp({
+    create: {
+      width: canvasSize,
+      height: canvasSize,
+      channels: 3,
+      background: BG,
+    },
+  })
+    .composite([{ input: content, top: offset, left: offset }])
+    .png()
+    .toFile(outFile);
 }
 
 async function main() {
@@ -46,8 +72,17 @@ async function main() {
     console.log(`Gerado: ${file} (${size}x${size})`);
   }
 
-  await generateMaskable(512);
-  console.log("Gerado: icon-512-maskable.png (512x512)");
+  await generateMaskableFile(
+    512,
+    join(root, "public", "icon-512-maskable.png")
+  );
+  console.log("Gerado: icon-512-maskable.png (512x512 maskable)");
+
+  await generateMaskableFile(
+    192,
+    join(root, "public", "icon-192-maskable.png")
+  );
+  console.log("Gerado: icon-192-maskable.png (192x192 maskable)");
 }
 
 main().catch((error) => {
