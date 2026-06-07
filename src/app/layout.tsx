@@ -17,10 +17,14 @@ export const metadata: Metadata = {
   description:
     "Gestão e acompanhamento de treinos de corrida com gamificação e métricas de progresso.",
   manifest: "/manifest.json",
+  icons: {
+    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/icon.svg", type: "image/svg+xml" }],
+  },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#000000",
+  themeColor: "#ED553B",
   width: "device-width",
   initialScale: 1,
 };
