@@ -23,9 +23,11 @@ export async function middleware(request: NextRequest) {
     publicPaths.some((p) => pathname.startsWith(p)) ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon") ||
+    pathname === "/manifest.json" ||
     pathname.endsWith(".ico") ||
     pathname.endsWith(".svg") ||
-    pathname.endsWith(".png")
+    pathname.endsWith(".png") ||
+    pathname.endsWith(".webmanifest")
   ) {
     return NextResponse.next();
   }
