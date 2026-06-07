@@ -1,0 +1,9 @@
+{
+  "name": "RunJourney",
+  "short_name": "RunJourney",
+  "description": "Seu treinador digital de corrida",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0f1a",
+  "theme_color": "#22c55e"
+}

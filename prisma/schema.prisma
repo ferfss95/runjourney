@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model AppSettings {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TrainingPlan {
+  id          String    @id @default(cuid())
+  name        String
+  goal        String
+  startDate   DateTime
+  endDate     DateTime
+  description String?
+  isActive    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  workouts    Workout[]
+
+  @@index([isActive])
+}
+
+enum WorkoutType {
+  EASY_RUN
+  INTERVAL
+  LONG_RUN
+  SPRINTS
+  RECOVERY
+}
+
+enum WorkoutStatus {
+  SCHEDULED
+  COMPLETED
+  MISSED
+}
+
+model Workout {
+  id              String            @id @default(cuid())
+  planId          String
+  plan            TrainingPlan      @relation(fields: [planId], references: [id], onDelete: Cascade)
+  date            DateTime
+  type            WorkoutType
+  plannedDistance Float
+  plannedTime     Int?
+  notes           String?
+  status          WorkoutStatus     @default(SCHEDULED)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  execution       WorkoutExecution?
+
+  @@index([planId])
+  @@index([date])
+  @@index([status])
+}
+
+model WorkoutExecution {
+  id               String   @id @default(cuid())
+  workoutId        String   @unique
+  workout          Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  actualDistance   Float
+  actualTime       Int
+  pace             Float
+  weight           Float?
+  heartRate        Int?
+  notes            String?
+  adherencePercent Float
+  distanceDiff     Float
+  timeDiff         Int
+  xpEarned         Int      @default(0)
+  completedAt      DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model WeightRecord {
+  id        String   @id @default(cuid())
+  weight    Float
+  date      DateTime
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([date])
+}
+
+enum AchievementType {
+  FIRST_RUN
+  FIVE_WORKOUTS
+  TEN_WORKOUTS
+  TWENTY_FIVE_WORKOUTS
+  FIFTY_KM
+  HUNDRED_KM
+  FIRST_LONG_RUN
+  FIRST_10K
+  FIRST_HALF_MARATHON
+}
+
+model Achievement {
+  id          String          @id @default(cuid())
+  type        AchievementType @unique
+  title       String
+  description String
+  icon        String
+  unlockedAt  DateTime?
+  createdAt   DateTime        @default(now())
+}
+
+model XPHistory {
+  id          String   @id @default(cuid())
+  amount      Int
+  source      String
+  description String?
+  workoutId   String?
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model UserStats {
+  id              String   @id @default("singleton")
+  totalXp         Int      @default(0)
+  level           Int      @default(1)
+  currentStreak   Int      @default(0)
+  bestStreak      Int      @default(0)
+  totalDistance   Float    @default(0)
+  totalWorkouts   Int      @default(0)
+  completedCount  Int      @default(0)
+  missedCount     Int      @default(0)
+  avgPace         Float?
+  bestPace        Float?
+  longestRun      Float    @default(0)
+  lastWorkoutDate DateTime?
+  updatedAt       DateTime @updatedAt
+}
