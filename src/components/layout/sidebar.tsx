@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -9,7 +10,6 @@ import {
   BarChart3,
   Trophy,
   LogOut,
-  Footprints,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logoutAction } from "@/actions/auth.actions";
@@ -31,8 +31,14 @@ export function Sidebar() {
       {/* Sidebar desktop */}
       <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 border-r border-border bg-card">
         <div className="flex h-16 items-center gap-2 px-6 border-b border-border/50">
-          <Footprints className="h-7 w-7 text-primary" />
-          <span className="text-xl font-bold gradient-text">RunJourney</span>
+          <Image
+            src="/icon-192.png"
+            alt="RunJourney"
+            width={32}
+            height={32}
+            className="rounded-lg"
+          />
+          <span className="text-xl font-bold text-foreground">RunJourney</span>
         </div>
         <nav className="flex-1 space-y-1 p-4">
           {navItems.map((item) => {
