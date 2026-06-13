@@ -16,52 +16,75 @@ function secondsToHMS(total: number) {
   return { h, m, s };
 }
 
+function pad(n: number) {
+  return String(n).padStart(2, "0");
+}
+
+function clamp(val: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, isNaN(val) ? 0 : val));
+}
+
+function segmentToNumber(str: string, max: number): number {
+  if (!str.trim()) return 0;
+  return clamp(parseInt(str, 10) || 0, 0, max);
+}
+
 /**
  * Input visual de duração no formato HH:MM:SS.
- * Internamente emite um <input type="hidden" name={name} value={totalSegundos}>.
+ * Mantém texto livre durante a digitação e formata ao sair do campo.
  */
 export function DurationInput({
   name,
-  defaultSeconds,
+  defaultSeconds = 0,
   onChange,
   required,
 }: DurationInputProps) {
-  const init = defaultSeconds ? secondsToHMS(defaultSeconds) : { h: 0, m: 0, s: 0 };
+  const init = secondsToHMS(defaultSeconds);
 
-  const [hours, setHours] = useState(init.h);
-  const [minutes, setMinutes] = useState(init.m);
-  const [seconds, setSeconds] = useState(init.s);
+  const [hoursStr, setHoursStr] = useState(
+    defaultSeconds > 0 ? pad(init.h) : ""
+  );
+  const [minutesStr, setMinutesStr] = useState(
+    defaultSeconds > 0 ? pad(init.m) : ""
+  );
+  const [secondsStr, setSecondsStr] = useState(
+    defaultSeconds > 0 ? pad(init.s) : ""
+  );
 
   const minutesRef = useRef<HTMLInputElement>(null);
   const secondsRef = useRef<HTMLInputElement>(null);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
 
-  const total = hours * 3600 + minutes * 60 + seconds;
+  const total =
+    segmentToNumber(hoursStr, 23) * 3600 +
+    segmentToNumber(minutesStr, 59) * 60 +
+    segmentToNumber(secondsStr, 59);
 
   useEffect(() => {
-    onChange?.(total);
-  }, [total, onChange]);
+    onChangeRef.current?.(total);
+  }, [total]);
 
-  function clamp(val: number, min: number, max: number) {
-    return Math.max(min, Math.min(max, isNaN(val) ? 0 : val));
+  function handleSegmentChange(
+    raw: string,
+    setter: (value: string) => void,
+    nextRef?: React.RefObject<HTMLInputElement | null>
+  ) {
+    const digits = raw.replace(/\D/g, "").slice(0, 2);
+    setter(digits);
+    if (digits.length >= 2) {
+      nextRef?.current?.focus();
+      nextRef?.current?.select();
+    }
   }
 
-  function handleHours(v: string) {
-    const n = clamp(parseInt(v) || 0, 0, 23);
-    setHours(n);
-    if (v.length >= 2) minutesRef.current?.focus();
+  function formatOnBlur(
+    str: string,
+    max: number,
+    setter: (value: string) => void
+  ) {
+    setter(pad(segmentToNumber(str, max)));
   }
-
-  function handleMinutes(v: string) {
-    const n = clamp(parseInt(v) || 0, 0, 59);
-    setMinutes(n);
-    if (v.length >= 2) secondsRef.current?.focus();
-  }
-
-  function handleSeconds(v: string) {
-    setSeconds(clamp(parseInt(v) || 0, 0, 59));
-  }
-
-  const pad = (n: number) => String(n).padStart(2, "0");
 
   return (
     <div className="flex items-center gap-1">
@@ -72,12 +95,16 @@ export function DurationInput({
           inputMode="numeric"
           pattern="[0-9]*"
           maxLength={2}
-          value={pad(hours)}
-          onChange={(e) => handleHours(e.target.value)}
+          value={hoursStr}
+          onChange={(e) =>
+            handleSegmentChange(e.target.value, setHoursStr, minutesRef)
+          }
+          onBlur={() => formatOnBlur(hoursStr, 23, setHoursStr)}
           onFocus={(e) => e.target.select()}
           aria-label="Horas"
+          placeholder="00"
           required={required && total === 0}
-          className="w-8 bg-transparent text-center text-sm font-mono outline-none"
+          className="w-8 bg-transparent text-center text-sm font-mono outline-none placeholder:text-muted-foreground/50"
         />
         <span className="text-muted-foreground font-mono select-none">:</span>
         <input
@@ -86,11 +113,15 @@ export function DurationInput({
           inputMode="numeric"
           pattern="[0-9]*"
           maxLength={2}
-          value={pad(minutes)}
-          onChange={(e) => handleMinutes(e.target.value)}
+          value={minutesStr}
+          onChange={(e) =>
+            handleSegmentChange(e.target.value, setMinutesStr, secondsRef)
+          }
+          onBlur={() => formatOnBlur(minutesStr, 59, setMinutesStr)}
           onFocus={(e) => e.target.select()}
           aria-label="Minutos"
-          className="w-8 bg-transparent text-center text-sm font-mono outline-none"
+          placeholder="00"
+          className="w-8 bg-transparent text-center text-sm font-mono outline-none placeholder:text-muted-foreground/50"
         />
         <span className="text-muted-foreground font-mono select-none">:</span>
         <input
@@ -99,11 +130,13 @@ export function DurationInput({
           inputMode="numeric"
           pattern="[0-9]*"
           maxLength={2}
-          value={pad(seconds)}
-          onChange={(e) => handleSeconds(e.target.value)}
+          value={secondsStr}
+          onChange={(e) => handleSegmentChange(e.target.value, setSecondsStr)}
+          onBlur={() => formatOnBlur(secondsStr, 59, setSecondsStr)}
           onFocus={(e) => e.target.select()}
           aria-label="Segundos"
-          className="w-8 bg-transparent text-center text-sm font-mono outline-none"
+          placeholder="00"
+          className="w-8 bg-transparent text-center text-sm font-mono outline-none placeholder:text-muted-foreground/50"
         />
         <span className="text-xs text-muted-foreground ml-1 select-none">
           hh:mm:ss

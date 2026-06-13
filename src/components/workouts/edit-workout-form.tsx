@@ -181,7 +181,9 @@ export function EditWorkoutForm({ workout }: EditWorkoutFormProps) {
               <Label>Tempo realizado</Label>
               <DurationInput
                 name="actualTime-display"
-                defaultSeconds={timeSeconds}
+                defaultSeconds={
+                  workout.execution?.actualTime ?? workout.plannedTime ?? 0
+                }
                 onChange={setTimeSeconds}
                 required
               />
