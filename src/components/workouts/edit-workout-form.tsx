@@ -163,7 +163,7 @@ export function EditWorkoutForm({ workout }: EditWorkoutFormProps) {
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="actualDistance">Distância realizada (km)</Label>
               <Input
@@ -201,7 +201,7 @@ export function EditWorkoutForm({ workout }: EditWorkoutFormProps) {
             </Card>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="weight">Peso atual (kg)</Label>
               <Input

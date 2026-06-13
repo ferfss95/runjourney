@@ -134,7 +134,7 @@ export function CompleteWorkoutForm({ workout }: CompleteWorkoutFormProps) {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="actualDistance">Distância realizada (km)</Label>
             <Input
@@ -161,7 +161,7 @@ export function CompleteWorkoutForm({ workout }: CompleteWorkoutFormProps) {
         </div>
 
         {pace && (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Card className="glass-card">
               <CardContent className="p-3 text-center">
                 <p className="text-xs text-muted-foreground">Pace calculado</p>
@@ -183,7 +183,7 @@ export function CompleteWorkoutForm({ workout }: CompleteWorkoutFormProps) {
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="weight">Peso atual (kg)</Label>
             <Input
