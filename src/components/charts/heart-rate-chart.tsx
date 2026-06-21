@@ -80,9 +80,50 @@ function HeartRateLineChart({
           strokeWidth={2}
           dot={{ fill: color, r: 4 }}
           activeDot={{ r: 6 }}
+          connectNulls
         />
       </LineChart>
     </ResponsiveContainer>
+  );
+}
+
+/** BPM médio ponderado por distância quando há mais de um treino no mesmo dia */
+function buildOverallSeries(
+  data: HeartRatePoint[]
+): { date: string; bpm: number }[] {
+  const byDate = new Map<string, { bpmDistSum: number; distSum: number }>();
+
+  for (const point of data) {
+    const entry = byDate.get(point.date) ?? { bpmDistSum: 0, distSum: 0 };
+    entry.bpmDistSum += point.bpm * point.distance;
+    entry.distSum += point.distance;
+    byDate.set(point.date, entry);
+  }
+
+  return Array.from(byDate.entries())
+    .map(([date, { bpmDistSum, distSum }]) => ({
+      date,
+      bpm: distSum > 0 ? Math.round(bpmDistSum / distSum) : 0,
+    }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+}
+
+function OverallHeartRateChart({ data }: { data: HeartRatePoint[] }) {
+  const series = buildOverallSeries(data);
+
+  if (series.length === 0) {
+    return <EmptyState message="Nenhum registro de BPM ainda" />;
+  }
+
+  return (
+    <HeartRateLineChart
+      data={series.map((p) => ({
+        ...p,
+        distance: 0,
+        session: "A" as WorkoutSessionKey,
+      }))}
+      color="hsl(11 82% 58%)"
+    />
   );
 }
 
@@ -178,13 +219,14 @@ export function HeartRateChart({ data }: HeartRateChartProps) {
       <CardHeader>
         <CardTitle className="text-lg">Evolução de BPM</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Frequência cardíaca por treino — compare por tipo ou veja todos juntos
+          Frequência cardíaca por treino — acompanhe a evolução ao longo do plano
         </p>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="all">
+        <Tabs defaultValue="general">
           <TabsList className="mb-4 flex h-auto flex-wrap gap-1">
-            <TabsTrigger value="all">Todos</TabsTrigger>
+            <TabsTrigger value="general">BPM geral</TabsTrigger>
+            <TabsTrigger value="all">Por tipo</TabsTrigger>
             {SESSION_ORDER.map((key) => (
               <TabsTrigger key={key} value={key}>
                 {SESSION_SHORT[key]}
@@ -192,7 +234,18 @@ export function HeartRateChart({ data }: HeartRateChartProps) {
             ))}
           </TabsList>
 
+          <TabsContent value="general">
+            <p className="text-xs text-muted-foreground mb-3">
+              Média ponderada por distância — todos os treinos (A, B e C) em uma
+              linha
+            </p>
+            <OverallHeartRateChart data={sorted} />
+          </TabsContent>
+
           <TabsContent value="all">
+            <p className="text-xs text-muted-foreground mb-3">
+              Uma linha por tipo de treino para comparar a evolução
+            </p>
             <CombinedHeartRateChart data={sorted} />
           </TabsContent>
 

@@ -6,17 +6,15 @@ function ChartSkeleton() {
   return <div className="h-[280px] rounded-xl bg-card/50 animate-pulse" />;
 }
 
-const chartOptions = { ssr: false, loading: () => <ChartSkeleton /> } as const;
-
 const DistanceChart = dynamic(
   () =>
     import("@/components/charts/distance-chart").then((m) => m.DistanceChart),
-  chartOptions
+  { ssr: false, loading: () => <ChartSkeleton /> }
 );
 
 const PaceChart = dynamic(
   () => import("@/components/charts/pace-chart").then((m) => m.PaceChart),
-  chartOptions
+  { ssr: false, loading: () => <ChartSkeleton /> }
 );
 
 const HeartRateChart = dynamic(
@@ -24,17 +22,17 @@ const HeartRateChart = dynamic(
     import("@/components/charts/heart-rate-chart").then(
       (m) => m.HeartRateChart
     ),
-  chartOptions
+  { ssr: false, loading: () => <ChartSkeleton /> }
 );
 
 const WeightChart = dynamic(
   () => import("@/components/charts/weight-chart").then((m) => m.WeightChart),
-  chartOptions
+  { ssr: false, loading: () => <ChartSkeleton /> }
 );
 
 const LongRunChart = dynamic(
   () => import("@/components/charts/long-run-chart").then((m) => m.LongRunChart),
-  chartOptions
+  { ssr: false, loading: () => <ChartSkeleton /> }
 );
 
 export type StatsChartData = Awaited<

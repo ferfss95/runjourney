@@ -31,6 +31,7 @@ export type SessionMetrics = {
 export type HeartRatePoint = {
   date: string;
   bpm: number;
+  distance: number;
   session: WorkoutSessionKey;
 };
 
@@ -200,6 +201,7 @@ function buildChartDataFromCompleted(
     .map((w) => ({
       date: getCompletionDate(w).toISOString().split("T")[0],
       bpm: w.execution!.heartRate!,
+      distance: w.execution!.actualDistance,
       session: getWorkoutSessionKey(w.notes, w.type),
     }));
 
