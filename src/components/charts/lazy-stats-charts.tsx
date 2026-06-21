@@ -3,18 +3,20 @@
 import dynamic from "next/dynamic";
 
 function ChartSkeleton() {
-  return <div className="h-[250px] rounded-xl bg-card/50 animate-pulse" />;
+  return <div className="h-[280px] rounded-xl bg-card/50 animate-pulse" />;
 }
+
+const chartOptions = { ssr: false, loading: () => <ChartSkeleton /> } as const;
 
 const DistanceChart = dynamic(
   () =>
     import("@/components/charts/distance-chart").then((m) => m.DistanceChart),
-  { loading: () => <ChartSkeleton /> }
+  chartOptions
 );
 
 const PaceChart = dynamic(
   () => import("@/components/charts/pace-chart").then((m) => m.PaceChart),
-  { loading: () => <ChartSkeleton /> }
+  chartOptions
 );
 
 const HeartRateChart = dynamic(
@@ -22,17 +24,17 @@ const HeartRateChart = dynamic(
     import("@/components/charts/heart-rate-chart").then(
       (m) => m.HeartRateChart
     ),
-  { loading: () => <ChartSkeleton /> }
+  chartOptions
 );
 
 const WeightChart = dynamic(
   () => import("@/components/charts/weight-chart").then((m) => m.WeightChart),
-  { loading: () => <ChartSkeleton /> }
+  chartOptions
 );
 
 const LongRunChart = dynamic(
   () => import("@/components/charts/long-run-chart").then((m) => m.LongRunChart),
-  { loading: () => <ChartSkeleton /> }
+  chartOptions
 );
 
 export type StatsChartData = Awaited<
