@@ -1,12 +1,25 @@
-import { DistanceChart } from "@/components/charts/distance-chart";
-import { PaceChart } from "@/components/charts/pace-chart";
-import { WeightChart } from "@/components/charts/weight-chart";
-import { LongRunChart } from "@/components/charts/long-run-chart";
+import { Suspense } from "react";
+import { LazyStatsCharts } from "@/components/charts/lazy-stats-charts";
 import { statsService } from "@/services/stats.service";
 
-export default async function StatsPage() {
-  const chartData = await statsService.getChartData();
+export const revalidate = 60;
 
+async function StatsContent() {
+  const chartData = await statsService.getChartData();
+  return <LazyStatsCharts data={chartData} />;
+}
+
+function StatsChartsSkeleton() {
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <div key={i} className="h-[280px] rounded-xl bg-card/50 animate-pulse" />
+      ))}
+    </div>
+  );
+}
+
+export default function StatsPage() {
   return (
     <div className="space-y-6">
       <div>
@@ -16,15 +29,9 @@ export default async function StatsPage() {
         </p>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <DistanceChart
-          weekly={chartData.weeklyDistance}
-          monthly={chartData.monthlyDistance}
-        />
-        <PaceChart data={chartData.paceEvolution} />
-        <WeightChart data={chartData.weightEvolution} />
-        <LongRunChart data={chartData.longRuns} />
-      </div>
+      <Suspense fallback={<StatsChartsSkeleton />}>
+        <StatsContent />
+      </Suspense>
     </div>
   );
 }

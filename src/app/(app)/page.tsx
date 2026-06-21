@@ -2,25 +2,30 @@ import { Suspense } from "react";
 import { GoalCard } from "@/components/dashboard/goal-card";
 import { NextWorkoutCard } from "@/components/dashboard/next-workout-card";
 import { StreakCard } from "@/components/dashboard/streak-card";
-import { StatsGrid } from "@/components/dashboard/stats-grid";
+import { StatsBySession } from "@/components/dashboard/stats-by-session";
 import { XpCard } from "@/components/dashboard/xp-card";
 import { InsightsCard } from "@/components/dashboard/insights-card";
-import { DistanceChart } from "@/components/charts/distance-chart";
+import { HeartRateCard } from "@/components/dashboard/heart-rate-card";
+import { LazyDistanceChart } from "@/components/charts/lazy-distance-chart";
 import { statsService } from "@/services/stats.service";
-import { gamificationService } from "@/services/gamification.service";
 
 export const revalidate = 60;
 
 async function DashboardContent() {
-  const [dashboard, chartData, insights, gamification] = await Promise.all([
-    statsService.getDashboardStats(),
-    statsService.getChartData(),
-    statsService.generateInsights(),
-    gamificationService.getGamificationData(),
-  ]);
+  const data = await statsService.getDashboardPageData();
 
-  const { activePlan, stats, todayWorkout, nextWorkout, planProgress } =
-    dashboard;
+  const {
+    activePlan,
+    stats,
+    todayWorkout,
+    nextWorkout,
+    planProgress,
+    chartData,
+    sessionMetrics,
+    overallMetrics,
+    heartRateSummary,
+    insights,
+  } = data;
 
   const displayWorkout = todayWorkout ?? nextWorkout;
 
@@ -65,6 +70,7 @@ async function DashboardContent() {
                     ? {
                         actualDistance: displayWorkout.execution.actualDistance,
                         actualTime: displayWorkout.execution.actualTime,
+                        completedAt: displayWorkout.execution.completedAt,
                       }
                     : null,
                 }
@@ -76,15 +82,24 @@ async function DashboardContent() {
           bestStreak={stats?.bestStreak ?? 0}
         />
         <XpCard
-          totalXp={gamification.stats?.totalXp ?? 0}
-          level={gamification.stats?.level ?? 1}
+          totalXp={stats?.totalXp ?? 0}
+          level={stats?.level ?? 1}
         />
       </div>
 
-      <StatsGrid stats={stats} />
+      <StatsBySession
+        metrics={sessionMetrics}
+        overallMetrics={overallMetrics}
+      />
+
+      <HeartRateCard
+        summary={heartRateSummary}
+        sessionMetrics={sessionMetrics}
+      />
+
       <InsightsCard insights={insights} />
 
-      <DistanceChart
+      <LazyDistanceChart
         weekly={chartData.weeklyDistance}
         monthly={chartData.monthlyDistance}
       />
@@ -101,9 +116,9 @@ function DashboardSkeleton() {
           <div key={i} className="h-36 rounded-xl bg-card/50 animate-pulse" />
         ))}
       </div>
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="h-24 rounded-xl bg-card/50 animate-pulse" />
+      <div className="space-y-3">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="h-44 rounded-xl bg-card/50 animate-pulse" />
         ))}
       </div>
     </>

@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  BarChart,
-  Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -10,9 +10,25 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatPace } from "@/lib/utils";
 
 interface LongRunChartProps {
   data: { date: string; distance: number; pace: number }[];
+}
+
+function formatAxisKm(value: number) {
+  const rounded = Math.round(value * 10) / 10;
+  return `${rounded.toLocaleString("pt-BR", { maximumFractionDigits: 1 })} km`;
+}
+
+function getYDomain(distances: number[]): [number, number] {
+  const min = Math.min(...distances);
+  const max = Math.max(...distances);
+  const padding = Math.max(0.5, (max - min) * 0.15 || 0.5);
+  return [
+    Math.max(0, Math.floor((min - padding) * 10) / 10),
+    Math.ceil((max + padding) * 10) / 10,
+  ];
 }
 
 export function LongRunChart({ data }: LongRunChartProps) {
@@ -29,14 +45,19 @@ export function LongRunChart({ data }: LongRunChartProps) {
     );
   }
 
+  const yDomain = getYDomain(data.map((d) => d.distance));
+
   return (
     <Card className="glass-card">
       <CardHeader>
         <CardTitle className="text-lg">Evolução dos Longões</CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Distância dos longões (Treino C) ao longo do plano
+        </p>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={250}>
-          <BarChart data={data}>
+          <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(0 0% 22%)" />
             <XAxis
               dataKey="date"
@@ -45,7 +66,10 @@ export function LongRunChart({ data }: LongRunChartProps) {
             />
             <YAxis
               tick={{ fill: "hsl(0 0% 55%)", fontSize: 11 }}
-              unit="km"
+              domain={yDomain}
+              tickCount={5}
+              allowDecimals
+              tickFormatter={formatAxisKm}
             />
             <Tooltip
               contentStyle={{
@@ -53,14 +77,22 @@ export function LongRunChart({ data }: LongRunChartProps) {
                 border: "1px solid hsl(0 0% 22%)",
                 borderRadius: "8px",
               }}
-              formatter={(value: number) => [`${value} km`, "Distância"]}
+              formatter={(value: number, name: string) => {
+                if (name === "distance") return [`${value} km`, "Distância"];
+                return [formatPace(value), "Pace"];
+              }}
+              labelFormatter={(label) => `Data: ${label}`}
             />
-            <Bar
+            <Line
+              type="monotone"
               dataKey="distance"
-              fill="hsl(11 82% 58%)"
-              radius={[4, 4, 0, 0]}
+              name="distance"
+              stroke="hsl(11 60% 45%)"
+              strokeWidth={2}
+              dot={{ fill: "hsl(11 60% 45%)", r: 4 }}
+              activeDot={{ r: 6 }}
             />
-          </BarChart>
+          </LineChart>
         </ResponsiveContainer>
       </CardContent>
     </Card>

@@ -1,18 +1,36 @@
 import { ACHIEVEMENT_DEFINITIONS, WORKOUT_TYPE_XP } from "@/lib/constants";
 import { levelFromXp } from "@/lib/utils";
+import {
+  getAchievements,
+  getUserStats,
+  getXpHistory,
+} from "@/lib/cached-data";
 import { statsRepository } from "@/repositories/stats.repository";
 import { workoutRepository } from "@/repositories/workout.repository";
 import type { AchievementType, WorkoutType } from "@prisma/client";
 
+const ACHIEVEMENT_COUNT = Object.keys(ACHIEVEMENT_DEFINITIONS).length;
+let initialized = false;
+
 export const gamificationService = {
-  async initialize() {
+  async initializeIfNeeded() {
+    if (initialized) return;
     await statsRepository.ensureUserStats();
-    await statsRepository.ensureAchievements(
-      Object.entries(ACHIEVEMENT_DEFINITIONS).map(([type, def]) => ({
-        type: type as AchievementType,
-        ...def,
-      }))
-    );
+    const existing = await statsRepository.getAchievements();
+    if (existing.length < ACHIEVEMENT_COUNT) {
+      await statsRepository.ensureAchievements(
+        Object.entries(ACHIEVEMENT_DEFINITIONS).map(([type, def]) => ({
+          type: type as AchievementType,
+          ...def,
+        }))
+      );
+    }
+    initialized = true;
+  },
+
+  /** @deprecated use initializeIfNeeded */
+  async initialize() {
+    return this.initializeIfNeeded();
   },
 
   getXpForWorkout(type: WorkoutType): number {
@@ -118,11 +136,11 @@ export const gamificationService = {
   },
 
   async getGamificationData() {
-    await this.initialize();
+    await this.initializeIfNeeded();
     const [stats, achievements, xpHistory] = await Promise.all([
-      statsRepository.getUserStats(),
-      statsRepository.getAchievements(),
-      statsRepository.getXpHistory(10),
+      getUserStats(),
+      getAchievements(),
+      getXpHistory(10),
     ]);
     return { stats, achievements, xpHistory };
   },

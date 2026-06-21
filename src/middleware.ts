@@ -3,7 +3,6 @@ import type { NextRequest } from "next/server";
 import { jwtVerify } from "jose";
 import { JWT_COOKIE_NAME } from "./lib/constants";
 
-// Pré-computado uma vez por cold start — evita recriar TextEncoder a cada request
 let _secret: Uint8Array | null = null;
 function getSecret(): Uint8Array | null {
   if (_secret) return _secret;
@@ -13,13 +12,30 @@ function getSecret(): Uint8Array | null {
   return _secret;
 }
 
+const verifiedTokens = new Map<string, { valid: boolean; expiresAt: number }>();
+const CACHE_TTL_MS = 60_000;
+
 async function isValidToken(token: string): Promise<boolean> {
+  const cached = verifiedTokens.get(token);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.valid;
+  }
+
   const secret = getSecret();
   if (!secret) return false;
+
   try {
     await jwtVerify(token, secret);
+    verifiedTokens.set(token, {
+      valid: true,
+      expiresAt: Date.now() + CACHE_TTL_MS,
+    });
     return true;
   } catch {
+    verifiedTokens.set(token, {
+      valid: false,
+      expiresAt: Date.now() + CACHE_TTL_MS,
+    });
     return false;
   }
 }
@@ -27,11 +43,11 @@ async function isValidToken(token: string): Promise<boolean> {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Rotas públicas e assets — sem verificação
   if (
     pathname === "/login" ||
     pathname === "/manifest.json" ||
     pathname.startsWith("/api/auth") ||
+    pathname.startsWith("/api/gamification") ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon") ||
     pathname.endsWith(".ico") ||
@@ -44,7 +60,13 @@ export async function middleware(request: NextRequest) {
 
   const token = request.cookies.get(JWT_COOKIE_NAME)?.value;
 
-  if (!token || !(await isValidToken(token))) {
+  if (!token) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("from", pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  if (!(await isValidToken(token))) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("from", pathname);
     return NextResponse.redirect(loginUrl);

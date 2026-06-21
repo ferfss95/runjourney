@@ -18,17 +18,10 @@ import {
   getSessionTitle,
   type WorkoutSessionKey,
 } from "@/lib/workout-session";
-import { formatPace } from "@/lib/utils";
+import type { HeartRatePoint } from "@/services/stats.service";
 
-export type PacePoint = {
-  date: string;
-  pace: number;
-  distance: number;
-  session: WorkoutSessionKey;
-};
-
-interface PaceChartProps {
-  data: PacePoint[];
+interface HeartRateChartProps {
+  data: HeartRatePoint[];
 }
 
 const SESSION_SHORT = {
@@ -37,21 +30,23 @@ const SESSION_SHORT = {
   C: "Treino C",
 } as const;
 
-function PaceLineChart({
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="flex h-[250px] items-center justify-center text-sm text-muted-foreground">
+      {message}
+    </div>
+  );
+}
+
+function HeartRateLineChart({
   data,
   color = "hsl(11 82% 58%)",
-  showLegend = false,
 }: {
-  data: PacePoint[];
+  data: HeartRatePoint[];
   color?: string;
-  showLegend?: boolean;
 }) {
   if (data.length === 0) {
-    return (
-      <div className="flex h-[250px] items-center justify-center text-sm text-muted-foreground">
-        Nenhum treino concluído nesta categoria
-      </div>
-    );
+    return <EmptyState message="Nenhum registro de BPM nesta categoria" />;
   }
 
   return (
@@ -65,8 +60,9 @@ function PaceLineChart({
         />
         <YAxis
           tick={{ fill: "hsl(0 0% 55%)", fontSize: 11 }}
-          tickFormatter={(v) => formatPace(v)}
-          domain={["dataMin - 0.5", "dataMax + 0.5"]}
+          unit=" bpm"
+          domain={["dataMin - 5", "dataMax + 5"]}
+          allowDecimals={false}
         />
         <Tooltip
           contentStyle={{
@@ -74,91 +70,41 @@ function PaceLineChart({
             border: "1px solid hsl(0 0% 22%)",
             borderRadius: "8px",
           }}
-          formatter={(value: number) => [formatPace(value), "Pace"]}
+          formatter={(value: number) => [`${value} bpm`, "Freq. cardíaca"]}
           labelFormatter={(label) => `Data: ${label}`}
         />
-        {showLegend && <Legend />}
         <Line
           type="monotone"
-          dataKey="pace"
-          name="Pace"
+          dataKey="bpm"
           stroke={color}
           strokeWidth={2}
           dot={{ fill: color, r: 4 }}
           activeDot={{ r: 6 }}
-          connectNulls
         />
       </LineChart>
     </ResponsiveContainer>
   );
 }
 
-/** Pace médio ponderado por distância quando há mais de um treino no mesmo dia */
-function buildOverallSeries(data: PacePoint[]): { date: string; pace: number }[] {
-  const byDate = new Map<string, { paceDistSum: number; distSum: number }>();
-
-  for (const point of data) {
-    const entry = byDate.get(point.date) ?? { paceDistSum: 0, distSum: 0 };
-    entry.paceDistSum += point.pace * point.distance;
-    entry.distSum += point.distance;
-    byDate.set(point.date, entry);
-  }
-
-  return Array.from(byDate.entries())
-    .map(([date, { paceDistSum, distSum }]) => ({
-      date,
-      pace: distSum > 0 ? paceDistSum / distSum : 0,
-    }))
-    .sort((a, b) => a.date.localeCompare(b.date));
-}
-
-function OverallPaceChart({ data }: { data: PacePoint[] }) {
-  const series = buildOverallSeries(data);
-
-  if (series.length === 0) {
-    return (
-      <div className="flex h-[250px] items-center justify-center text-sm text-muted-foreground">
-        Nenhum treino concluído
-      </div>
-    );
-  }
-
-  return (
-    <PaceLineChart
-      data={series.map((p) => ({
-        ...p,
-        distance: 0,
-        session: "A" as WorkoutSessionKey,
-      }))}
-      color="hsl(11 82% 58%)"
-    />
-  );
-}
-
-/** Mesma data pode ter treinos A/B/C — agrupa em um ponto por data com colunas A, B, C */
-function buildCombinedSeries(data: PacePoint[]) {
+function buildCombinedSeries(data: HeartRatePoint[]) {
   const byDate = new Map<string, Partial<Record<WorkoutSessionKey, number>>>();
 
   for (const point of data) {
     const entry = byDate.get(point.date) ?? {};
-    entry[point.session] = point.pace;
+    entry[point.session] = point.bpm;
     byDate.set(point.date, entry);
   }
 
   return Array.from(byDate.entries())
-    .map(([date, paces]) => ({ date, ...paces }))
+    .map(([date, bpms]) => ({ date, ...bpms }))
     .sort((a, b) => a.date.localeCompare(b.date));
 }
 
-function CombinedPaceChart({ data }: { data: PacePoint[] }) {
+function CombinedHeartRateChart({ data }: { data: HeartRatePoint[] }) {
   const series = buildCombinedSeries(data);
 
   if (series.length === 0) {
-    return (
-      <div className="flex h-[250px] items-center justify-center text-sm text-muted-foreground">
-        Nenhum treino concluído
-      </div>
-    );
+    return <EmptyState message="Nenhum registro de BPM ainda" />;
   }
 
   return (
@@ -172,8 +118,9 @@ function CombinedPaceChart({ data }: { data: PacePoint[] }) {
         />
         <YAxis
           tick={{ fill: "hsl(0 0% 55%)", fontSize: 11 }}
-          tickFormatter={(v) => formatPace(v)}
-          domain={["dataMin - 0.5", "dataMax + 0.5"]}
+          unit=" bpm"
+          domain={["dataMin - 5", "dataMax + 5"]}
+          allowDecimals={false}
         />
         <Tooltip
           contentStyle={{
@@ -182,7 +129,7 @@ function CombinedPaceChart({ data }: { data: PacePoint[] }) {
             borderRadius: "8px",
           }}
           formatter={(value: number, name: string) => [
-            formatPace(value),
+            `${value} bpm`,
             SESSION_SHORT[name as WorkoutSessionKey] ?? name,
           ]}
           labelFormatter={(label) => `Data: ${label}`}
@@ -210,22 +157,34 @@ function CombinedPaceChart({ data }: { data: PacePoint[] }) {
   );
 }
 
-export function PaceChart({ data }: PaceChartProps) {
+export function HeartRateChart({ data }: HeartRateChartProps) {
   const sorted = [...data].sort((a, b) => a.date.localeCompare(b.date));
+
+  if (sorted.length === 0) {
+    return (
+      <Card className="glass-card">
+        <CardHeader>
+          <CardTitle className="text-lg">Evolução de BPM</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <EmptyState message="Registre a freq. cardíaca ao concluir treinos" />
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="glass-card">
       <CardHeader>
-        <CardTitle className="text-lg">Evolução de Pace</CardTitle>
+        <CardTitle className="text-lg">Evolução de BPM</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Quanto mais baixa a curva, melhor — pace caindo significa evolução
+          Frequência cardíaca por treino — compare por tipo ou veja todos juntos
         </p>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="general">
+        <Tabs defaultValue="all">
           <TabsList className="mb-4 flex h-auto flex-wrap gap-1">
-            <TabsTrigger value="general">Pace geral</TabsTrigger>
-            <TabsTrigger value="all">Por tipo</TabsTrigger>
+            <TabsTrigger value="all">Todos</TabsTrigger>
             {SESSION_ORDER.map((key) => (
               <TabsTrigger key={key} value={key}>
                 {SESSION_SHORT[key]}
@@ -233,19 +192,8 @@ export function PaceChart({ data }: PaceChartProps) {
             ))}
           </TabsList>
 
-          <TabsContent value="general">
-            <p className="text-xs text-muted-foreground mb-3">
-              Média ponderada por distância — todos os treinos (A, B e C) em
-              uma linha
-            </p>
-            <OverallPaceChart data={sorted} />
-          </TabsContent>
-
           <TabsContent value="all">
-            <p className="text-xs text-muted-foreground mb-3">
-              Uma linha por tipo de treino para comparar a evolução
-            </p>
-            <CombinedPaceChart data={sorted} />
+            <CombinedHeartRateChart data={sorted} />
           </TabsContent>
 
           {SESSION_ORDER.map((key) => {
@@ -255,7 +203,7 @@ export function PaceChart({ data }: PaceChartProps) {
                 <p className="text-xs text-muted-foreground mb-3">
                   {getSessionTitle(key)}
                 </p>
-                <PaceLineChart
+                <HeartRateLineChart
                   data={filtered}
                   color={SESSION_CHART_COLORS[key]}
                 />

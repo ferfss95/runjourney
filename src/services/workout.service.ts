@@ -25,6 +25,8 @@ export const workoutService = {
       ? new Date(data.completedDate + "T08:00:00")
       : new Date();
 
+    const scheduledDate = workout.date;
+
     const pace = calculatePace(data.actualDistance, data.actualTime);
     const distanceDiff = data.actualDistance - workout.plannedDistance;
     const timeDiff = data.actualTime - (workout.plannedTime ?? 0);
@@ -52,12 +54,14 @@ export const workoutService = {
           distanceDiff,
           timeDiff,
           xpEarned,
+          scheduledDate,
+          completedAt: completedDate,
         },
       });
 
       await tx.workout.update({
         where: { id: workoutId },
-        data: { status: "COMPLETED", date: completedDate },
+        data: { status: "COMPLETED" },
       });
 
       if (data.weight) {
@@ -147,10 +151,6 @@ export const workoutService = {
           timeDiff,
           completedAt: completedDate,
         },
-      }),
-      prisma.workout.update({
-        where: { id: workoutId },
-        data: { date: completedDate },
       }),
     ]);
 

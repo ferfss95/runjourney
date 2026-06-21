@@ -36,6 +36,7 @@ interface EditWorkoutFormProps {
       weight: number | null;
       heartRate: number | null;
       notes: string | null;
+      completedAt: Date;
     } | null;
   };
 }
@@ -58,7 +59,9 @@ export function EditWorkoutForm({ workout }: EditWorkoutFormProps) {
   const [uncompleting, setUncompleting] = useState(false);
 
   const [completedDate, setCompletedDate] = useState(
-    workout.date.toISOString().split("T")[0]
+    workout.execution?.completedAt
+      ? workout.execution.completedAt.toISOString().split("T")[0]
+      : workout.date.toISOString().split("T")[0]
   );
   const [distanceStr, setDistanceStr] = useState(
     numToDistStr(workout.execution?.actualDistance ?? workout.plannedDistance)
@@ -143,6 +146,7 @@ export function EditWorkoutForm({ workout }: EditWorkoutFormProps) {
             {formatDistance(workout.plannedDistance)}
           </p>
           <p className="text-sm text-muted-foreground">
+            Planejado:{" "}
             {format(new Date(workout.date), "EEEE, d 'de' MMMM yyyy", {
               locale: ptBR,
             })}

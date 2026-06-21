@@ -2,6 +2,18 @@ import type { WorkoutType } from "@prisma/client";
 
 export type WorkoutSessionKey = "A" | "B" | "C";
 
+export const SESSION_ORDER: WorkoutSessionKey[] = ["A", "B", "C"];
+
+export const SESSION_CHART_COLORS: Record<WorkoutSessionKey, string> = {
+  A: "hsl(0, 0%, 70%)",
+  B: "hsl(11, 82%, 58%)",
+  C: "hsl(11, 60%, 45%)",
+};
+
+export function getSessionTitle(key: WorkoutSessionKey): string {
+  return SESSION_BASE[key].title;
+}
+
 export interface WorkoutSessionInfo {
   key: WorkoutSessionKey;
   title: string;

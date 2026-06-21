@@ -12,9 +12,9 @@ import { WorkoutSessionInfo } from "@/components/workouts/workout-session-info";
 import { calculatePace, formatDistance, formatPace } from "@/lib/utils";
 import type { WorkoutType } from "@prisma/client";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { CheckCircle2, Sparkles } from "lucide-react";
 
 interface CompleteWorkoutFormProps {
   workout: {
@@ -27,9 +27,96 @@ interface CompleteWorkoutFormProps {
   };
 }
 
+type UnlockedAchievement = {
+  type: string;
+  title: string;
+  description: string;
+  icon: string;
+};
+
+type CompletionResult = {
+  xpEarned: number;
+  unlocked: UnlockedAchievement[];
+};
+
 /** Converte string com vírgula ou ponto para número */
 function parseDecimal(value: string): number {
   return parseFloat(value.replace(",", "."));
+}
+
+function CompletionSuccess({
+  result,
+  distance,
+  pace,
+}: {
+  result: CompletionResult;
+  distance: number;
+  pace: number | null;
+}) {
+  return (
+    <Card className="glass-card border-primary/30">
+      <CardContent className="p-6 sm:p-8 text-center space-y-5">
+        <div className="flex justify-center">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/20">
+            <CheckCircle2 className="h-8 w-8 text-primary" />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <h2 className="text-2xl font-bold">Treino concluído!</h2>
+          <p className="text-muted-foreground">
+            Parabéns — mais um passo rumo à sua meia maratona.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 max-w-xs mx-auto text-left">
+          <div className="rounded-lg bg-muted/40 p-3">
+            <p className="text-xs text-muted-foreground">Distância</p>
+            <p className="font-semibold">{formatDistance(distance)}</p>
+          </div>
+          {pace != null && (
+            <div className="rounded-lg bg-muted/40 p-3">
+              <p className="text-xs text-muted-foreground">Pace</p>
+              <p className="font-semibold">{formatPace(pace)}/km</p>
+            </div>
+          )}
+          <div className="rounded-lg bg-muted/40 p-3 col-span-2">
+            <p className="text-xs text-muted-foreground">XP ganho</p>
+            <p className="font-semibold text-primary">+{result.xpEarned} XP</p>
+          </div>
+        </div>
+
+        {result.unlocked.length > 0 && (
+          <div className="space-y-3 pt-2 border-t border-border/50">
+            <p className="text-sm font-medium flex items-center justify-center gap-2">
+              <Sparkles className="h-4 w-4 text-primary" />
+              Novas conquistas desbloqueadas
+            </p>
+            <div className="space-y-2">
+              {result.unlocked.map((achievement) => (
+                <div
+                  key={achievement.type}
+                  className="flex items-center gap-3 rounded-lg bg-muted/40 p-3 text-left"
+                >
+                  <span className="text-2xl shrink-0">{achievement.icon}</span>
+                  <div className="min-w-0">
+                    <p className="font-semibold text-sm">{achievement.title}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {achievement.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <p className="text-xs text-muted-foreground">
+          Redirecionando para o dashboard...
+        </p>
+      </CardContent>
+    </Card>
+  );
 }
 
 export function CompleteWorkoutForm({ workout }: CompleteWorkoutFormProps) {
@@ -40,7 +127,8 @@ export function CompleteWorkoutForm({ workout }: CompleteWorkoutFormProps) {
     String(workout.plannedDistance).replace(".", ",")
   );
   const [timeSeconds, setTimeSeconds] = useState(workout.plannedTime ?? 0);
-  const [unlocked, setUnlocked] = useState<string[]>([]);
+  const [completionResult, setCompletionResult] =
+    useState<CompletionResult | null>(null);
   const [completedDate, setCompletedDate] = useState(
     new Date().toISOString().split("T")[0]
   );
@@ -57,12 +145,14 @@ export function CompleteWorkoutForm({ workout }: CompleteWorkoutFormProps) {
     return Math.min(100, Math.round((distance / workout.plannedDistance) * 100));
   }, [distance, workout.plannedDistance]);
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     setPending(true);
     setError(null);
 
-    // Normaliza distância (troca vírgula por ponto para o servidor)
+    const formData = new FormData(e.currentTarget);
     formData.set("actualDistance", String(distance));
+    formData.set("actualTime", String(timeSeconds));
     formData.set("workoutId", workout.id);
 
     const result = await completeWorkoutAction(formData);
@@ -71,30 +161,22 @@ export function CompleteWorkoutForm({ workout }: CompleteWorkoutFormProps) {
       setPending(false);
       return;
     }
-    if (result?.unlocked?.length) {
-      setUnlocked(result.unlocked);
-      setTimeout(() => router.push("/"), 2500);
-    } else {
-      router.push("/");
-    }
+
+    setCompletionResult({
+      xpEarned: result?.xpEarned ?? 0,
+      unlocked: result?.unlocked ?? [],
+    });
     setPending(false);
+    setTimeout(() => router.push("/"), 3000);
   }
 
-  if (unlocked.length > 0) {
+  if (completionResult) {
     return (
-      <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        className="text-center py-12"
-      >
-        <p className="text-2xl font-bold mb-4">🎉 Treino Concluído!</p>
-        <p className="text-muted-foreground mb-4">Novas conquistas:</p>
-        {unlocked.map((a) => (
-          <p key={a} className="text-lg text-primary">
-            {a}
-          </p>
-        ))}
-      </motion.div>
+      <CompletionSuccess
+        result={completionResult}
+        distance={distance}
+        pace={pace}
+      />
     );
   }
 
@@ -118,7 +200,7 @@ export function CompleteWorkoutForm({ workout }: CompleteWorkoutFormProps) {
         </CardContent>
       </Card>
 
-      <form action={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="completedDate">Data de realização</Label>
           <Input

@@ -10,20 +10,23 @@ export function StreakCard({ currentStreak, bestStreak }: StreakCardProps) {
   return (
     <Card className="glass-card">
       <CardContent className="p-4 sm:p-6">
-        <h3 className="text-sm text-muted-foreground uppercase tracking-wider mb-4">
+        <h3 className="text-sm text-muted-foreground uppercase tracking-wider mb-1">
           Consistência
         </h3>
+        <p className="text-xs text-muted-foreground mb-4">
+          Treinos feitos no dia planejado ou antes
+        </p>
         <div className="space-y-4">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/20">
               <Flame className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Sequência Atual</p>
+              <p className="text-sm text-muted-foreground">Sequência atual</p>
               <p className="text-2xl font-bold">
                 {currentStreak}{" "}
                 <span className="text-base font-normal text-muted-foreground">
-                  dias
+                  {currentStreak === 1 ? "treino" : "treinos"}
                 </span>
               </p>
             </div>
@@ -33,11 +36,11 @@ export function StreakCard({ currentStreak, bestStreak }: StreakCardProps) {
               <Trophy className="h-5 w-5 text-foreground" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Melhor Sequência</p>
+              <p className="text-sm text-muted-foreground">Melhor sequência</p>
               <p className="text-2xl font-bold">
                 {bestStreak}{" "}
                 <span className="text-base font-normal text-muted-foreground">
-                  dias
+                  {bestStreak === 1 ? "treino" : "treinos"}
                 </span>
               </p>
             </div>

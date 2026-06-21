@@ -1,19 +1,10 @@
 "use server";
 
-import { workoutRepository } from "@/repositories/workout.repository";
 import { workoutService } from "@/services/workout.service";
 import { revalidatePath } from "next/cache";
+import { ACHIEVEMENT_DEFINITIONS } from "@/lib/constants";
+import type { AchievementType } from "@prisma/client";
 import { z } from "zod";
-import type { WorkoutType } from "@prisma/client";
-
-const workoutSchema = z.object({
-  planId: z.string(),
-  date: z.string(),
-  type: z.enum(["EASY_RUN", "INTERVAL", "LONG_RUN", "SPRINTS", "RECOVERY"]),
-  plannedDistance: z.coerce.number().positive(),
-  plannedTime: z.coerce.number().optional(),
-  notes: z.string().optional(),
-});
 
 const completeSchema = z.object({
   workoutId: z.string(),
@@ -149,7 +140,17 @@ export async function completeWorkoutAction(formData: FormData) {
     revalidatePath("/calendar");
     revalidatePath("/stats");
     revalidatePath("/achievements");
-    return { success: true, unlocked: result.unlocked };
+    revalidatePath("/plans");
+    return {
+      success: true,
+      xpEarned: result.execution.xpEarned,
+      unlocked: result.unlocked.map((type: AchievementType) => ({
+        type,
+        title: ACHIEVEMENT_DEFINITIONS[type].title,
+        description: ACHIEVEMENT_DEFINITIONS[type].description,
+        icon: ACHIEVEMENT_DEFINITIONS[type].icon,
+      })),
+    };
   } catch (e) {
     return { error: e instanceof Error ? e.message : "Erro ao concluir treino" };
   }

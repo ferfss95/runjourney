@@ -21,6 +21,7 @@ interface NextWorkoutCardProps {
     execution?: {
       actualDistance: number;
       actualTime: number;
+      completedAt: Date;
     } | null;
   } | null;
 }
@@ -53,6 +54,11 @@ export function NextWorkoutCard({ workout }: NextWorkoutCardProps) {
 
   const timeLabel = isCompleted ? "Tempo realizado" : "Tempo previsto";
   const distanceLabel = isCompleted ? "Distância real" : "Distância";
+  const displayDate =
+    isCompleted && workout.execution
+      ? new Date(workout.execution.completedAt)
+      : new Date(workout.date);
+
   return (
     <Card
       className={`glass-card ${
@@ -87,7 +93,7 @@ export function NextWorkoutCard({ workout }: NextWorkoutCardProps) {
         <div className="flex items-center gap-2 text-muted-foreground text-sm">
           <Calendar className="h-4 w-4 shrink-0" />
           <span className="truncate">
-            {format(new Date(workout.date), "EEEE, d 'de' MMMM", {
+            {format(displayDate, "EEEE, d 'de' MMMM", {
               locale: ptBR,
             })}
           </span>

@@ -79,6 +79,7 @@ model WorkoutExecution {
   distanceDiff     Float
   timeDiff         Int
   xpEarned         Int      @default(0)
+  scheduledDate    DateTime?
   completedAt      DateTime @default(now())
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt

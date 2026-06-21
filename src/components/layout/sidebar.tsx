@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
@@ -14,6 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 import { logoutAction } from "@/actions/auth.actions";
 import { Button } from "@/components/ui/button";
+import { NavLink } from "@/components/layout/nav-link";
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -32,11 +32,11 @@ export function Sidebar() {
       <aside className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 border-r border-border bg-card">
         <div className="flex h-16 items-center gap-2 px-6 border-b border-border/50">
           <Image
-            src="/icon-192.png"
+            src="/logo-sidebar.png"
             alt="RunJourney"
             width={32}
             height={32}
-            className="rounded-lg"
+            className="shrink-0"
           />
           <span className="text-xl font-bold text-foreground">RunJourney</span>
         </div>
@@ -46,19 +46,20 @@ export function Sidebar() {
               pathname === item.href ||
               (item.href !== "/" && pathname.startsWith(item.href));
             return (
-              <Link
+              <NavLink
                 key={item.href}
                 href={item.href}
                 className={cn(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                   isActive
                     ? "bg-primary/15 text-primary"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  "data-[pending]:opacity-70"
                 )}
               >
                 <item.icon className="h-5 w-5 shrink-0" />
                 {item.label}
-              </Link>
+              </NavLink>
             );
           })}
         </nav>
@@ -84,19 +85,20 @@ export function Sidebar() {
               pathname === item.href ||
               (item.href !== "/" && pathname.startsWith(item.href));
             return (
-              <Link
+              <NavLink
                 key={item.href}
                 href={item.href}
                 className={cn(
                   "flex flex-col items-center gap-0.5 px-2 py-1 rounded-lg min-w-0 flex-1 transition-colors",
                   isActive ? "text-primary" : "text-muted-foreground"
                 )}
+                pendingClassName="h-3 w-3"
               >
                 <item.icon className="h-5 w-5 shrink-0" />
                 <span className="text-[10px] leading-tight truncate w-full text-center">
                   {item.label}
                 </span>
-              </Link>
+              </NavLink>
             );
           })}
         </div>
